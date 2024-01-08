@@ -1,0 +1,14 @@
+Cactus Code Thorn SDGMGrid
+Author(s)    : Erik Schnetter <schnetter@cct.lsu.edu>
+             : David Radice <david.radice@aei.mpg.de>
+Maintainer(s): Erik Schnetter <schnetter@cct.lsu.edu>
+             : David Radice <david.radice@aei.mpg.de>
+Licence      : GPLv3
+--------------------------------------------------------------------------
+
+1. Purpose
+
+Sets up a non-uniform grid for the spectral discontinuous Galerkin method
+implemented in HRSCCore
+
+This code is EXPERIMENTAL and has NEVER BEEN USED IN PRODUCTION

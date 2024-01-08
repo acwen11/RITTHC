@@ -1,0 +1,55 @@
+# Interface definition for thorn AdvectHRSC
+IMPLEMENTS:     AdvectHRSC
+INHERITS:       grid
+
+# MoL
+CCTK_INT FUNCTION MoLRegisterEvolved(                                          \
+        CCTK_INT IN EvolvedIndex,                                              \
+        CCTK_INT IN RHSIndex                                                   \
+    )
+USES FUNCTION MoLRegisterEvolved
+
+CCTK_INT FUNCTION MoLRegisterConstrained(                                      \
+        CCTK_INT IN ConstrainedIndex                                           \
+    )
+USES FUNCTION MoLRegisterConstrained
+
+# Boundary conditions
+CCTK_INT FUNCTION Boundary_SelectVarForBC(                                     \
+        CCTK_POINTER_TO_CONST IN cctkGH,                                       \
+        CCTK_INT IN faces,                                                     \
+        CCTK_INT IN boundary_width,                                            \
+        CCTK_INT IN table_handle,                                              \
+        CCTK_STRING IN var_name,                                               \
+        CCTK_STRING IN bc_name                                                 \
+    )
+USES FUNCTION Boundary_SelectVarForBC
+
+USES INCLUDE: Symmetry.h
+
+# Domain specifications
+CCTK_INT FUNCTION GetDomainSpecification(                                      \
+    CCTK_INT IN size,                                                          \
+    CCTK_REAL OUT ARRAY physical_min,                                          \
+    CCTK_REAL OUT ARRAY physical_max,                                          \
+    CCTK_REAL OUT ARRAY interior_min,                                          \
+    CCTK_REAL OUT ARRAY interior_max,                                          \
+    CCTK_REAL OUT ARRAY exterior_min,                                          \
+    CCTK_REAL OUT ARRAY exterior_max,                                          \
+    CCTK_REAL OUT ARRAY spacing                                                \
+    )
+REQUIRES FUNCTION GetDomainSpecification
+
+USES INCLUDE: hrscc.hh
+USES INCLUDE: utils.hh
+
+PUBLIC:
+
+CCTK_REAL phi TYPE=GF TIMELEVELS=3 "Scalar field"
+CCTK_REAL vel[3] TYPE=GF TIMELEVELS=3 "Advection velocity"
+CCTK_REAL error TYPE=GF "Error with respect to the analytic solution"
+
+PRIVATE:
+
+CCTK_REAL rhs TYPE=GF "Time derivative of the scalar field"
+

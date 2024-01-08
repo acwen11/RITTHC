@@ -1,0 +1,31 @@
+# Schedule definitions for thorn HRSCCore
+
+SCHEDULE HRSCC_Startup AT CCTK_STARTUP
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Register banner"
+
+SCHEDULE HRSCC_ParamCheck AT CCTK_PARAMCHECK
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Check consistency of the parameters"
+
+SCHEDULE HRSCC_ParamStore AT CCTK_BASEGRID
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Store parameters in private namespace"
+
+SCHEDULE HRSCC_GetGridCoordinates AT CCTK_WRAGH
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Store the Cactus indices of the grid coordinates and weights"
+
+SCHEDULE HRSCC_GetMetric AT CCTK_WRAGH
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Store the Cactus indices of the diagonal components of the metric and the lapse"

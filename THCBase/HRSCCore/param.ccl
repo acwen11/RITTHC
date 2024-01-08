@@ -1,0 +1,119 @@
+# Parameter definitions for thorn HRSCCore
+
+RESTRICTED:
+
+KEYWORD scheme "The numerical scheme to use"
+{
+    "FD" :: "Finite Differences"
+    "FV" :: "Finite Volumes"
+} "FD"
+
+# Note: numerical stability requires dt < 1/maxspeed
+CCTK_REAL maxspeed "Maximum propagation speed"
+{
+    (0:* :: "Any positive real number"
+} 1.0
+
+BOOLEAN cartesian "If false use alp/sqrt(gxx) as a correction factor for maxspeed"
+{
+} "yes"
+
+###############################################################################
+# Options common to two or more schemes
+###############################################################################
+# Used for FD and FV
+BOOLEAN pplim "Use positivity preserving limiters"
+{
+} "no"
+
+# Used for FD and FV
+KEYWORD reconstruction "Reconstruction method to use"
+{
+    "LimO3"     :: "LimO3 3rd order reconstruction"
+    "MinMod"    :: "MinMod TVD reconstruction"
+    "MP5"       :: "Monotonicity Preserving 5th order reconstruction"
+    "SuperBee"  :: "SuperBee TVD reconstruction"
+    "VanLeer"   :: "Van Leer TVD reconstruction"
+    "WENO3"     :: "3rd order Weighted Essentially Non Oscillatory"
+    "WENO5"     :: "5th order Weighted Essentially Non Oscillatory"
+    "WENO7"     :: "7th order Weighted Essentially Non Oscillatory"
+} "MP5"
+
+# Used for FV
+KEYWORD riemann_solver "Riemann solver to use with FV"
+{
+    "GLF"  :: "GLobal Lax-Friedrichs"
+    "LLF"  :: "Local  Lax-Friedrichs"
+    "HLLE" :: "Harten, Lax, van Leer and Einfeld"
+} "LLF"
+
+###############################################################################
+# Options for FD
+###############################################################################
+KEYWORD flux_split "Flux splitting to use"
+{
+    "GLF"       :: "Global Lax-Friedrichs"
+    "LLF"       :: "Local Lax-Friedrichs"
+    "RF"        :: "Roe with entropy fix"
+} "RF"
+
+KEYWORD system_split "Method used to decompose the system of equations"
+{
+    "characteristics" :: "Split the system using local-characteristic variables"
+    "components"      :: "Split the system component by component"
+} "characteristics"
+
+###############################################################################
+# Options for FV
+###############################################################################
+# NOTE: this only stores the fluxes as grid functions. The actual refluxing
+# algorithm is implemented by a separate thorn.
+BOOLEAN refluxing "Use refluxing"
+{
+} "no"
+
+###############################################################################
+# Low-level settings
+###############################################################################
+REAL speed_eps "speed_eps * maxspeed is a reference small speed used in some schemes"
+{
+    0:1 :: "Any number between 0 and 1"
+} 1e-3
+
+# This is 1/alpha in the notation of arXiv:1312.5004
+# Note: to have a strictly positivity-preserving scheme alpha = ndimensions
+# and dt < 0.5/alpha
+REAL pplim_alpha "alpha parameter to use for the positivity-preserving limiter"
+{
+    (0:* :: "Any positive number"
+} 3.0
+
+REAL minmod_theta "theta parameter for the MinMod reconstruction"
+{
+    1:2 :: "Any value in [1,2]"
+} 1.0
+
+CCTK_REAL limo3_eps "eps parameter for the LimO3 reconstruction"
+{
+    (0:* :: "Any positive value"
+} 1e-12
+
+CCTK_REAL limo3_r "r parameter for the LimO3 reconstruction"
+{
+    (0:1 :: "Any positive number in ]0,1]"
+} 1.0
+
+REAL mp5_alpha "alpha parameter for MP5 reconstruction"
+{
+    2:* :: "Any value larger than two"
+} 4.0
+
+REAL weno_alpha "alpha parameter for WENO smoothness indicators limiter"
+{
+    (0:* :: "Any positive number"
+} 10.0
+
+REAL weno_eps "eps regularization coefficient for WENO"
+{
+    (0:* :: "Any positive number"
+} 1e-12

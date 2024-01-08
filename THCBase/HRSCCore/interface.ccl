@@ -1,0 +1,76 @@
+# Interface definition for thorn HRSCCore
+IMPLEMENTS:         HRSCCore
+INHERITS:           ADMBase
+
+INCLUDE HEADER: hrscc.hh IN hrscc.hh
+INCLUDE HEADER: hrscc_characteristic_split.hh IN hrscc_characteristic_split.hh
+INCLUDE HEADER: hrscc_claw.hh IN hrscc_claw.hh
+INCLUDE HEADER: hrscc_claw_solver.hh IN hrscc_claw_solver.hh
+INCLUDE HEADER: hrscc_component_split.hh IN hrscc_component_split.hh
+INCLUDE HEADER: hrscc_config.hh IN hrscc_config.hh
+INCLUDE HEADER: hrscc_config_par.hh IN hrscc_config_par.hh
+INCLUDE HEADER: hrscc_eno_stencil.hh IN hrscc_eno_stencil.hh
+INCLUDE HEADER: hrscc_fd_reconstruction.hh IN hrscc_fd_reconstruction.hh
+INCLUDE HEADER: hrscc_finite_difference.hh IN hrscc_finite_difference.hh
+INCLUDE HEADER: hrscc_finite_volume.hh IN hrscc_finite_volume.hh
+INCLUDE HEADER: hrscc_gll_element.hh IN hrscc_gll_element.hh
+INCLUDE HEADER: hrscc_gni_grid.hh IN hrscc_gni_grid.hh
+INCLUDE HEADER: hrscc_gridinfo.hh IN hrscc_gridinfo.hh
+INCLUDE HEADER: hrscc_hlle_rs.hh IN hrscc_hlle_rs.hh
+INCLUDE HEADER: hrscc_lax_friedrichs_fs.hh IN hrscc_lax_friedrichs_fs.hh
+INCLUDE HEADER: hrscc_lax_friedrichs_rs.hh IN hrscc_lax_friedrichs_rs.hh
+INCLUDE HEADER: hrscc_limiters.hh IN hrscc_limiters.hh
+INCLUDE HEADER: hrscc_limo3_reconstruction.hh IN hrscc_limo3_reconstruction.hh
+INCLUDE HEADER: hrscc_macro.hh IN hrscc_macro.hh
+INCLUDE HEADER: hrscc_metric_info.hh IN hrscc_metric_info.hh
+INCLUDE HEADER: hrscc_mp5_reconstruction.hh IN hrscc_mp5_reconstruction.hh
+INCLUDE HEADER: hrscc_observer.hh IN hrscc_observer.hh
+INCLUDE HEADER: hrscc_roe_fs.hh IN hrscc_roe_fs.hh
+INCLUDE HEADER: hrscc_sdg_method.hh IN hrscc_sdg_method.hh
+INCLUDE HEADER: hrscc_traits.hh IN hrscc_traits.hh
+INCLUDE HEADER: hrscc_tvd_reconstruction.hh IN hrscc_tvd_reconstruction.hh
+INCLUDE HEADER: hrscc_typedefs.hh IN hrscc_typedefs.hh
+INCLUDE HEADER: hrscc_u5_reconstruction.hh IN hrscc_u5_reconstruction.hh
+INCLUDE HEADER: hrscc_upwind_reconstruction.hh IN hrscc_upwind_reconstruction.hh
+INCLUDE HEADER: hrscc_weno_limiter.hh IN hrscc_weno_limiter.hh
+INCLUDE HEADER: hrscc_weno_reconstruction.hh IN hrscc_weno_reconstruction.hh
+INCLUDE HEADER: hrscc_weno_stencil.hh IN hrscc_weno_stencil.hh
+INCLUDE HEADER: hrscc_weno_weights.hh IN hrscc_weno_weights.hh
+
+USES INCLUDE: hrscc_characteristic_split.hh
+USES INCLUDE: hrscc_claw.hh
+USES INCLUDE: hrscc_claw_solver.hh
+USES INCLUDE: hrscc_component_split.hh
+USES INCLUDE: hrscc_config.hh
+USES INCLUDE: hrscc_config_par.hh
+USES INCLUDE: hrscc_eno_stencil.hh
+USES INCLUDE: hrscc_fd_reconstruction.hh
+USES INCLUDE: hrscc_finite_difference.hh
+USES INCLUDE: hrscc_finite_volume.hh
+USES INCLUDE: hrscc_gll_element.hh
+USES INCLUDE: hrscc_gni_grid.hh
+USES INCLUDE: hrscc_gridinfo.hh
+USES INCLUDE: hrscc_hlle_rs.hh
+USES INCLUDE: hrscc.hh
+USES INCLUDE: hrscc_lax_friedrichs_fs.hh
+USES INCLUDE: hrscc_lax_friedrichs_rs.hh
+USES INCLUDE: hrscc_limiters.hh
+USES INCLUDE: hrscc_limo3_reconstruction.hh
+USES INCLUDE: hrscc_macro.hh
+USES INCLUDE: hrscc_metric_info.hh
+USES INCLUDE: hrscc_mp5_reconstruction.hh
+USES INCLUDE: hrscc_observer.hh
+USES INCLUDE: hrscc_roe_fs.hh
+USES INCLUDE: hrscc_sdg_method.hh
+USES INCLUDE: hrscc_traits.hh
+USES INCLUDE: hrscc_tvd_reconstruction.hh
+USES INCLUDE: hrscc_typedefs.hh
+USES INCLUDE: hrscc_u5_reconstruction.hh
+USES INCLUDE: hrscc_upwind_reconstruction.hh
+USES INCLUDE: hrscc_weno_limiter.hh
+USES INCLUDE: hrscc_weno_reconstruction.hh
+USES INCLUDE: hrscc_weno_stencil.hh
+USES INCLUDE: hrscc_weno_weights.hh
+
+USES INCLUDE: utils.hh
+USES INCLUDE: finite_difference.h

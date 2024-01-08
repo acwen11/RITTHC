@@ -1,0 +1,131 @@
+#O DELTA	Grid spacing
+#O TYPE	Shape: gaussian or square
+
+ActiveThorns = "
+AdvectHRSC
+Boundary
+Carpet
+CarpetIOASCII
+CarpetIOBasic
+CarpetIOHDF5
+CarpetIOScalar
+CarpetLib
+CarpetReduce
+CarpetSlab
+CartGrid3d
+CoordBase
+HRSCCore
+IOUtil
+LoopControl
+MoL
+NanChecker
+Slab
+SymBase
+Time
+"
+
+#############################################################
+# Grid
+#############################################################
+
+CoordBase::domainsize                   = minmax
+
+CoordBase::xmin                         = -0.75
+CoordBase::ymin                         = -0.75
+CoordBase::zmin                         = 0
+
+CoordBase::xmax                         = 0.75
+CoordBase::ymax                         = 0.75
+CoordBase::zmax                         = 0
+
+CoordBase::dx                           = @DELTA@
+CoordBase::dy                           = @DELTA@
+CoordBase::dz                           = @DELTA@
+
+CoordBase::boundary_size_x_lower        = 3
+CoordBase::boundary_size_y_lower        = 3
+CoordBase::boundary_size_z_lower        = 3
+CoordBase::boundary_shiftout_x_lower    = 1
+CoordBase::boundary_shiftout_y_lower    = 1
+CoordBase::boundary_shiftout_z_lower    = 1
+
+CoordBase::boundary_size_x_upper        = 3
+CoordBase::boundary_size_y_upper        = 3
+CoordBase::boundary_size_z_upper        = 3
+CoordBase::boundary_shiftout_x_upper    = 1
+CoordBase::boundary_shiftout_y_upper    = 1
+CoordBase::boundary_shiftout_z_upper    = 1
+
+CartGrid3D::type                        = "coordbase"
+CartGrid3D::domain                      = "full"
+CartGrid3D::avoid_origin                = "no"
+
+#############################################################
+# Carpet
+#############################################################
+
+Carpet::ghost_size                      = 3
+Carpet::domain_from_coordbase           = "yes"
+Carpet::max_refinement_levels           = 1
+#Carpet::init_each_timelevel             = "yes"
+Carpet::num_integrator_substeps         = 3
+
+#############################################################
+# Time integration
+#############################################################
+
+Cactus::terminate                     = "time"
+Cactus::cctk_final_time               = 10
+
+Time::dtfac                           = 0.3
+MethodOfLines::ode_method             = "RK3"
+MethodOfLines::MoL_Intermediate_Steps = 3
+MethodOfLines::MoL_Num_Scratch_Levels = 1
+MethodOfLines::MoL_NaN_Check          = "yes"
+
+#############################################################
+# AdvectHRSC
+#############################################################
+
+AdvectHRSC::id_phi_type         = "@TYPE@"
+
+AdvectHRSC::id_lowbound[0]      = 0.25
+AdvectHRSC::id_upbound[0]       = 0.5
+AdvectHRSC::id_lowbound[1]      = -0.125
+AdvectHRSC::id_upbound[1]       = 0.125
+
+AdvectHRSC::id_gpos[0]          = 0.375
+AdvectHRSC::id_isigma[0]        = 100
+AdvectHRSC::id_isigma[1]        = 100
+
+AdvectHRSC::id_vel_type         = "rigid_rotation"
+
+#############################################################
+# Output
+#############################################################
+
+IO::out_dir                   = $parfile
+IO::out_fileinfo              = "all"
+
+CarpetIOBasic::outInfo_every        = 5
+CarpetIOBasic::outInfo_vars         = "AdvectHRSC::phi"
+
+CarpetIOHDF5::compression_level     = 6
+
+CarpetIOHDF5::out2D_vars            = "AdvectHRSC::phi"
+CarpetIOHDF5::out2D_criterion       = "time"
+CarpetIOHDF5::out2D_dt              = 0.1
+CarpetIOHDF5::out2D_xy              = "yes"
+CarpetIOHDF5::out2D_xz              = "no"
+CarpetIOHDF5::out2D_yz              = "no"
+
+IOASCII::out1D_criterion            = "time"
+IOASCII::out1D_dt                   = 0.1
+IOASCII::out1D_x                    = "yes"
+IOASCII::out1D_y                    = "yes"
+IOASCII::out1D_vars                 = "AdvectHRSC::phi"
+
+CarpetIOASCII::out_precision        = 19
+CarpetIOASCII::out3D_ghosts         = "yes"
+
+# vim: set ft=sh tabstop=20 :

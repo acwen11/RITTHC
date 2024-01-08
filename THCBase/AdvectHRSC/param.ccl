@@ -1,0 +1,83 @@
+# Parameter definitions for thorn AdvectHRSC
+
+SHARES: MethodOfLines
+USES INT MoL_Num_Evolved_Vars
+USES INT MoL_Num_Constrained_Vars
+
+SHARES: HRSCCore
+USES BOOLEAN refluxing
+
+PRIVATE:
+
+BOOLEAN verbose "Print a short message for every function that is called"
+{
+} "no"
+
+KEYWORD id_phi_type "Initial data for the scalar field"
+{
+    "sine" :: "sine wave"
+    "gaussian" :: "gaussian pulse"
+    "square" :: "indicatrix function of a square"
+    "random" :: "pseudo-random initial data"
+} "sine"
+
+REAL id_phi_amplitude "Initial amplitude of the advected field"
+{
+    * :: "Any value"
+} 1
+
+REAL id_k[3] "Wave number for the initial sine wave for phi"
+{
+    * :: "Any value"
+} 0
+
+REAL id_isigma[3] "Inverse of the variance of the gaussian pulse"
+{
+    0:* :: "Any non-negative value"
+} 0
+
+REAL id_gpos[3] "Position of the gaussian pulse"
+{
+    * :: "Any value"
+} 0
+
+REAL id_lowbound[3] "Lower boundaries of the square wave"
+{
+    * :: "Any value"
+} -1
+
+REAL id_upbound[3] "Upper boundaries of the square wave"
+{
+    * :: "Any value"
+} 1
+
+KEYWORD id_vel_type "Initial data for the velocity"
+{
+    "given" :: "given by the user"
+    "rigid_rotation" :: "rigid rotation advection field"
+} "given"
+
+REAL id_vel[3] "Initial data for the velocity (if given)"
+{
+    * :: "Any value"
+} 0
+
+KEYWORD bc_type "Which boundary conditions to use"
+{
+    "flat" :: "0th order extrapolation"
+    "none" :: "Do nothing boundary conditions"
+} "none"
+
+RESTRICTED:
+
+INT AdvectHRSC_Max_NumEvolvedVars "Number of evolved variables"                \
+    ACCUMULATOR-BASE=MethodOfLines::MoL_Num_Evolved_Vars
+{
+    1:1 :: "phi"
+} 1
+
+INT AdvectHRSC_Max_Constrained_Vars "Number of constrained variables"          \
+    ACCUMULATOR-BASE=MethodOfLines::MoL_Num_Constrained_Vars
+{
+    3:3 :: "vel[3]"
+} 3

@@ -1,0 +1,7 @@
+These scripts are based on the lglnodes script by Greg von Wincke:
+
+http://www.mathworks.com/matlabcentral/fileexchange/4775-legende-gauss-lobatto-nodes-and-weights
+
+and requires the multiple-precision toolbox by Ben Barrowes:
+
+http://www.mathworks.com/matlabcentral/fileexchange/6446-multiple-precision-toolbox-for-matlab

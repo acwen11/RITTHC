@@ -1,0 +1,15 @@
+Cactus Code Thorn HRSCCore
+Author(s)    : David Radice <david.radice@aei.mpg.de>
+Maintainer(s): David Radice <david.radice@aei.mpg.de>
+Licence      : GPLv3
+--------------------------------------------------------------------------
+
+1. Purpose
+
+This thorn provides a general, low-level, infrastructure to solve
+multi-dimensional systems of hyperbolic conservation laws in Cactus.
+
+A. The local tree
+
+The local folder is ment to include tests and documentation outside of the
+Cactus framework.

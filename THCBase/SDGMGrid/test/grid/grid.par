@@ -1,0 +1,70 @@
+ActiveThorns = "
+Boundary
+Carpet
+CarpetIOASCII
+CarpetIOBasic
+CarpetIOScalar
+CarpetLib
+CarpetReduce
+CarpetSlab
+CartGrid3d
+CoordBase
+HRSCCore
+IOUtil
+LoopControl
+NanChecker
+SDGMGrid
+Slab
+SymBase
+"
+
+#############################################################
+# Grid
+#############################################################
+
+SDGMGrid::xmin                          = -1
+SDGMGrid::ymin                          = -1
+SDGMGrid::zmin                          = -1
+
+SDGMGrid::xmax                          = 1
+SDGMGrid::ymax                          = 1
+SDGMGrid::zmax                          = 1
+
+SDGMGrid::sdgm_order                    = 10
+
+SDGMGrid::nelem_x                       = 4
+SDGMGrid::nelem_y                       = 4
+SDGMGrid::nelem_z                       = 4
+
+CartGrid3D::type                        = "multipatch"
+
+#############################################################
+# Carpet
+#############################################################
+
+Carpet::ghost_size                      = 1
+Carpet::domain_from_multipatch          = "yes"
+Carpet::max_refinement_levels           = 1
+#Carpet::init_each_timelevel             = "yes"
+
+#############################################################
+# Output
+#############################################################
+
+IO::out_dir                   = $parfile
+IO::out_fileinfo              = "all"
+
+IOASCII::out1D_every          = 1
+IOASCII::out1D_x              = "yes"
+IOASCII::out1D_y              = "yes"
+IOASCII::out1D_z              = "yes"
+IOASCII::out1D_vars           = "Grid::x Grid::y Grid::z CarpetReduce::weight"
+
+IOASCII::out2D_every          = 1
+IOASCII::out2D_vars           = "Grid::x"
+#IOASCII::out2D_xyplane_z      = 0.5
+
+CarpetIOASCII::out_precision = 19
+CarpetIOASCII::out3D_ghosts   = "yes"
+
+# vim: set ft=sh tabstop=20 noexpandtab :

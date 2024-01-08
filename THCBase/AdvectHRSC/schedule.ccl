@@ -1,0 +1,67 @@
+# Schedule definitions for thorn AdvectHRSC
+
+STORAGE: vel[3]
+STORAGE: phi[3]
+STORAGE: error
+STORAGE: rhs
+
+# =============================================================================
+# Initialization
+# =============================================================================
+
+SCHEDULE AdvectHRSC_Init AT CCTK_STARTUP
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Register banner"
+
+SCHEDULE AdvectHRSC_SetSym AT CCTK_BASEGRID
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Setup symmetries"
+
+SCHEDULE AdvectHRSC_MoLRegister IN MoL_Register
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Register variables with MoL"
+
+# =============================================================================
+# Initial data
+# =============================================================================
+
+SCHEDULE AdvectHRSC_ID AT CCTK_INITIAL
+{
+    LANG: C
+} "Initial data for the AdvectHRSC"
+
+# =============================================================================
+# Main loop
+# =============================================================================
+SCHEDULE AdvectHRSC_RHS IN MoL_CalcRHS
+{
+    LANG: C
+} "Compute the RHS for MoL"
+
+SCHEDULE AdvectHRSC_SelectBC IN MoL_PostStep
+{
+    LANG: C
+    OPTIONS: level
+    SYNC: phi
+} "Select boundary conditions"
+
+SCHEDULE GROUP ApplyBCs AS AdvectHRSC_ApplyBCs \
+    IN MoL_PostStep AFTER AdvectHRSC_SelectBC
+{
+} "Apply boundary conditions"
+
+# =============================================================================
+# Post-processing
+# =============================================================================
+# This works only for constant, uniform velocity fields!
+SCHEDULE AdvectHRSC_Error AT CCTK_ANALYSIS
+{
+    LANG: C
+    TRIGGER: error
+} "Compute error with respect to the analytic solution"

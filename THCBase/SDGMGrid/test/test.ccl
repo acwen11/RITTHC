@@ -1,0 +1,11 @@
+ABSTOL  1e-14
+
+TEST grid
+{
+    NPROCS 1
+}
+
+TEST grid_2
+{
+    NPROCS 2
+}

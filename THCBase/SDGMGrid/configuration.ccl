@@ -1,0 +1,6 @@
+REQUIRES Boost CPPUtils FDCore HRSCCore
+PROVIDES SDGMGrid
+{
+    SCRIPT
+    LANG
+} 

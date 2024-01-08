@@ -1,0 +1,162 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 7.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[      4321,        153]
+NotebookOptionsPosition[      3675,        126]
+NotebookOutlinePosition[      4013,        141]
+CellTagsIndexPosition[      3970,        138]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["\<\
+Here m refers to the order of the derivative, n is the number of intervals \
+(grid points-1), and s is the number of grid points at which the derivative \
+is evaluated relative to the leftmost point of the stencil (which would be 0).\
+\>", "Text",
+ CellChangeTimes->{{3.4858413599812527`*^9, 3.485841422981415*^9}, {
+   3.48584147896173*^9, 3.485841486757803*^9}, {3.486813792363504*^9, 
+   3.486813796083706*^9}, 3.498996060594529*^9}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"UFDWeights", "[", 
+   RowBox[{"m_", ",", " ", "n_", ",", " ", "s_"}], "]"}], " ", ":=", " ", 
+  RowBox[{"CoefficientList", "[", 
+   RowBox[{
+    RowBox[{"Normal", "[", 
+     RowBox[{
+      RowBox[{"Series", "[", 
+       RowBox[{
+        RowBox[{
+         SuperscriptBox["x", "s"], 
+         SuperscriptBox[
+          RowBox[{"Log", "[", "x", "]"}], "m"]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"x", ",", "1", ",", "n"}], "}"}]}], "]"}], "/", 
+      SuperscriptBox["h", "m"]}], "]"}], ",", "x"}], "]"}]}]], "Input"],
+
+Cell["\<\
+I want the one sided approximation to the first derivative for a right handed \
+boundary.\
+\>", "Text",
+ CellChangeTimes->{{3.485841347209157*^9, 3.485841351110108*^9}, {
+  3.485841506302903*^9, 3.4858415274538593`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"UFDWeights", "[", 
+  RowBox[{"1", ",", "2", ",", "2"}], "]"}]], "Input",
+ CellChangeTimes->{{3.485841456872772*^9, 3.4858414911928473`*^9}, {
+  3.486798033214419*^9, 3.486798033372736*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   FractionBox["1", 
+    RowBox[{"2", " ", "h"}]], ",", 
+   RowBox[{"-", 
+    FractionBox["2", "h"]}], ",", 
+   FractionBox["3", 
+    RowBox[{"2", " ", "h"}]]}], "}"}]], "Output",
+ CellChangeTimes->{{3.4858414653677063`*^9, 3.485841491725677*^9}, 
+   3.486797996978413*^9, 3.486798034259137*^9, 3.4989960668287783`*^9, 
+   3.519968380268448*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"UFDWeights", "[", 
+  RowBox[{"1", ",", "2", ",", "0"}], "]"}]], "Input",
+ CellChangeTimes->{{3.4989960686969347`*^9, 3.498996085689937*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"-", 
+    FractionBox["3", 
+     RowBox[{"2", " ", "h"}]]}], ",", 
+   FractionBox["2", "h"], ",", 
+   RowBox[{"-", 
+    FractionBox["1", 
+     RowBox[{"2", " ", "h"}]]}]}], "}"}]], "Output",
+ CellChangeTimes->{3.498996088222722*^9, 3.519968381985111*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"UFDWeights", "[", 
+  RowBox[{"2", ",", "4", ",", "1"}], "]"}]], "Input",
+ CellChangeTimes->{3.504350864962525*^9}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   FractionBox["11", 
+    RowBox[{"12", " ", 
+     SuperscriptBox["h", "2"]}]], ",", 
+   RowBox[{"-", 
+    FractionBox["5", 
+     RowBox[{"3", " ", 
+      SuperscriptBox["h", "2"]}]]}], ",", 
+   FractionBox["1", 
+    RowBox[{"2", " ", 
+     SuperscriptBox["h", "2"]}]], ",", 
+   FractionBox["1", 
+    RowBox[{"3", " ", 
+     SuperscriptBox["h", "2"]}]], ",", 
+   RowBox[{"-", 
+    FractionBox["1", 
+     RowBox[{"12", " ", 
+      SuperscriptBox["h", "2"]}]]}]}], "}"}]], "Output",
+ CellChangeTimes->{3.504350865446459*^9}]
+}, Open  ]]
+},
+WindowSize->{771, 724},
+WindowMargins->{{155, Automatic}, {Automatic, 25}},
+FrontEndVersion->"7.0 for Linux x86 (64-bit) (February 25, 2009)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[545, 20, 446, 7, 51, "Text"],
+Cell[994, 29, 557, 16, 55, "Input"],
+Cell[1554, 47, 230, 5, 31, "Text"],
+Cell[CellGroupData[{
+Cell[1809, 56, 213, 4, 32, "Input"],
+Cell[2025, 62, 385, 11, 46, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2447, 78, 164, 3, 32, "Input"],
+Cell[2614, 83, 305, 10, 46, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[2956, 98, 138, 3, 32, "Input"],
+Cell[3097, 103, 562, 20, 46, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)

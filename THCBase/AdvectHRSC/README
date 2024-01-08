@@ -1,0 +1,13 @@
+Cactus Code Thorn AdvectHRSC
+Author(s)    : David Radice <david.radice@aei.mpg.de>
+Maintainer(s): David Radice <david.radice@aei.mpg.de>
+Licence      : GPLv3
+--------------------------------------------------------------------------
+
+1. Purpose
+
+Solves the linear advection equation using HRSCCore.
+
+A. NOTE
+
+This thorn assumes that the advection field is uncompressible.

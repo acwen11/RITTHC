@@ -1,0 +1,20 @@
+# Interface definition for thorn THC_SubGrid
+IMPLEMENTS:     THC_SubGrid
+INHERITS:       Grid HydroBase THC_Core TmunuBase
+
+USES INCLUDE: finite_difference.h
+USES INCLUDE: thc_macro.hh
+USES INCLUDE: utils.hh
+
+PUBLIC:
+
+CCTK_REAL nu_turb TYPE=GF TAGS='Prolongation="None"' "Turbulent viscosity"
+
+CCTK_REAL turb_stress TYPE=GF TAGS='ProlongationParameter="TmunuBase::prolongation_type" TensorTypeAlias="DD_sym" Interpolator="matter"'
+{
+    tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz
+} "Reynolds stress tensor"
+
+PRIVATE:
+
+CCTK_REAL scratch[9] TYPE=GF TAGS='Prolongation="None"' "Scratch space"

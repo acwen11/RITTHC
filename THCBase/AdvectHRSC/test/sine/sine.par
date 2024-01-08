@@ -1,0 +1,132 @@
+#O DELTA	Grid spacing
+#O TYPE	Shape: sine, gaussian or square
+#O TIMESTEP	Timestep
+
+ActiveThorns = "
+AdvectHRSC
+Boundary
+Carpet
+CarpetIOASCII
+CarpetIOBasic
+CarpetIOScalar
+CarpetLib
+CarpetReduce
+CarpetSlab
+CartGrid3d
+CoordBase
+HRSCCore
+IOUtil
+LoopControl
+MoL
+NanChecker
+Periodic
+Slab
+SymBase
+Time
+"
+
+#############################################################
+# Grid
+#############################################################
+
+CoordBase::domainsize                   = minmax
+
+CoordBase::xmin                         = 0
+CoordBase::ymin                         = 0
+CoordBase::zmin                         = 0
+
+CoordBase::xmax                         = 1
+CoordBase::ymax                         = 0
+CoordBase::zmax                         = 0
+
+CoordBase::dx                           = 0.01
+CoordBase::dy                           = 0.01
+CoordBase::dz                           = 0.01
+
+CoordBase::boundary_size_x_lower        = 3
+CoordBase::boundary_size_y_lower        = 3
+CoordBase::boundary_size_z_lower        = 3
+CoordBase::boundary_shiftout_x_lower    = 1
+CoordBase::boundary_shiftout_y_lower    = 1
+CoordBase::boundary_shiftout_z_lower    = 1
+
+CoordBase::boundary_size_x_upper        = 3
+CoordBase::boundary_size_y_upper        = 3
+CoordBase::boundary_size_z_upper        = 3
+CoordBase::boundary_shiftout_x_upper    = 0
+CoordBase::boundary_shiftout_y_upper    = 1
+CoordBase::boundary_shiftout_z_upper    = 1
+
+CartGrid3D::type                        = "coordbase"
+CartGrid3D::domain                      = "full"
+CartGrid3D::avoid_origin                = "no"
+
+#############################################################
+# Carpet
+#############################################################
+
+Carpet::ghost_size                      = 3
+Carpet::domain_from_coordbase           = "yes"
+Carpet::max_refinement_levels           = 1
+#Carpet::init_each_timelevel             = "yes"
+Carpet::num_integrator_substeps         = 4
+
+#############################################################
+# Time integration
+#############################################################
+
+Cactus::terminate                     = "time"
+Cactus::cctk_final_time               = 1
+
+# For convergence tests One should use  Dt ~ C (Dx)^(p/4),
+# where p is the expected spatial order.
+Time::timestep_method                 = "given"
+Time::timestep                        = 0.0015811
+
+MethodOfLines::ode_method             = "RK4"
+MethodOfLines::MoL_Intermediate_Steps = 4
+MethodOfLines::MoL_Num_Scratch_Levels = 1
+MethodOfLines::MoL_NaN_Check          = "yes"
+
+#############################################################
+# AdvectHRSC
+#############################################################
+
+AdvectHRSC::id_phi_type         = "sine"
+AdvectHRSC::id_k[0]             = 1
+AdvectHRSC::id_k[1]             = 0
+AdvectHRSC::id_k[2]             = 0
+AdvectHRSC::id_vel_type         = "given"
+AdvectHRSC::id_vel[0]           = 1
+AdvectHRSC::id_vel[1]           = 0
+AdvectHRSC::id_vel[2]           = 0
+
+AdvectHRSC::id_lowbound[0]      = 0.4
+AdvectHRSC::id_upbound[0]       = 0.6
+
+AdvectHRSC::id_gpos[0]          = 0.5
+AdvectHRSC::id_isigma[0]        = 100
+
+Periodic::periodic              = "yes"
+
+#############################################################
+# Output
+#############################################################
+
+IO::out_dir                   = $parfile
+IO::out_fileinfo              = "all"
+
+CarpetIOBasic::outInfo_every        = 15
+CarpetIOBasic::outInfo_vars         = "AdvectHRSC::phi"
+
+IOASCII::out1D_every          = 15
+IOASCII::out1D_x              = "yes"
+IOASCII::out1D_y              = "no"
+IOASCII::out1D_z              = "no"
+IOASCII::out1D_d              = "no"
+IOASCII::out1D_vars           = "AdvectHRSC::phi"
+
+CarpetIOASCII::out_precision = 19
+CarpetIOASCII::out3D_ghosts   = "yes"
+
+# vim: set ft=sh tabstop=20 noexpandtab :

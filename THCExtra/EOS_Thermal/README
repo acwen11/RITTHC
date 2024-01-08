@@ -1,0 +1,10 @@
+CVS info   : $Header:$
+
+Cactus Code Thorn EOS_Thermal_Idealgas
+Thorn Author(s)     : Wolfgang Kastaun <physik@fangwolg.de>
+Thorn Maintainer(s) : Wolfgang Kastaun <physik@fangwolg.de>
+--------------------------------------------------------------------------
+
+Purpose of the thorn:
+
+Basic API for density, temperature, and composition dependent EOS

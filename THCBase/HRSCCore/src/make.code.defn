@@ -1,0 +1,17 @@
+# Main make.code.defn file for thorn HRSCCore
+
+# Source files in this directory
+SRCS = hrscc_config.cc \
+    hrscc_config_par.cc \
+    hrscc_eno_stencil.cc \
+    hrscc_gll_element.cc \
+    hrscc_gridinfo.cc \
+    hrscc_metric_info.cc \
+    hrscc_limiters.cc \
+    hrscc_roe_fs.cc \
+    hrscc_startup.cc \
+    hrscc_weno_stencil.cc \
+    hrscc_weno_weights.cc
+
+# Subdirectories containing source files
+SUBDIRS = 

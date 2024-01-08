@@ -1,0 +1,16 @@
+ABSTOL  1e-10
+
+TEST sdgm_sine
+{
+    NPROCS 1
+}
+
+TEST sine
+{
+    NPROCS 1
+}
+
+TEST square
+{
+    NPROCS 1
+}

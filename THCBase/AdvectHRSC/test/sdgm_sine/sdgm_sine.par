@@ -1,0 +1,127 @@
+ActiveThorns = "
+AdvectHRSC
+Boundary
+Carpet
+CarpetIOASCII
+CarpetIOBasic
+CarpetIOScalar
+CarpetLib
+CarpetReduce
+CarpetSlab
+CartGrid3d
+CoordBase
+HRSCCore
+IOUtil
+LoopControl
+MoL
+NanChecker
+Periodic
+SDGMGrid
+Slab
+SymBase
+Time
+"
+
+#############################################################
+# Grid
+#############################################################
+
+SDGMGrid::xmin                          = 0
+SDGMGrid::ymin                          = -1
+SDGMGrid::zmin                          = -1
+
+SDGMGrid::xmax                          = 1
+SDGMGrid::ymax                          = 1
+SDGMGrid::zmax                          = 1
+
+# Note that this has to be equal to the hard-coded value
+# in AdvectHRSC
+SDGMGrid::sdgm_order                    = 5
+
+SDGMGrid::nelem_x                       = 10
+SDGMGrid::nelem_y                       = 1
+SDGMGrid::nelem_z                       = 1
+
+CartGrid3D::type                        = "multipatch"
+
+#############################################################
+# Carpet
+#############################################################
+
+Carpet::ghost_size                      = 1
+Carpet::domain_from_multipatch          = "yes"
+Carpet::max_refinement_levels           = 1
+#Carpet::init_each_timelevel             = "yes"
+Carpet::num_integrator_substeps         = 4
+
+#############################################################
+# Time integration
+#############################################################
+
+Cactus::terminate                     = "time"
+Cactus::cctk_final_time               = 5
+
+Time::timestep_method                 = "given"
+# From Cockburn and Shu 2001
+# CFL = 0.073
+Time::timestep                        = 0.0073
+#Time::timestep                        = 0.0145
+
+MethodOfLines::ode_method             = "RK4"
+MethodOfLines::MoL_Intermediate_Steps = 4
+MethodOfLines::MoL_Num_Scratch_Levels = 1
+MethodOfLines::MoL_NaN_Check          = "yes"
+
+#############################################################
+# AdvectHRSC
+#############################################################
+
+AdvectHRSC::id_phi_type         = "sine"
+AdvectHRSC::id_k[0]             = 2
+AdvectHRSC::id_k[1]             = 0
+AdvectHRSC::id_k[2]             = 0
+AdvectHRSC::id_vel_type         = "given"
+AdvectHRSC::id_vel[0]           = 1
+AdvectHRSC::id_vel[1]           = 0
+AdvectHRSC::id_vel[2]           = 0
+
+AdvectHRSC::id_phi_amplitude    = 1
+
+AdvectHRSC::id_lowbound[0]      = 0.4
+AdvectHRSC::id_upbound[0]       = 0.6
+AdvectHRSC::id_lowbound[1]      = -1
+AdvectHRSC::id_upbound[1]       = 1
+AdvectHRSC::id_lowbound[2]      = -1
+AdvectHRSC::id_upbound[2]       = 1
+
+AdvectHRSC::id_gpos[0]          = 0.5
+AdvectHRSC::id_isigma[0]        = 100
+AdvectHRSC::id_isigma[1]        = 0
+AdvectHRSC::id_isigma[2]        = 0
+
+AdvectHRSC::bc_type             = "flat"
+Periodic::periodic_x            = "yes"
+
+#############################################################
+# Output
+#############################################################
+
+IO::out_dir                   = $parfile
+IO::out_fileinfo              = "all"
+
+CarpetIOBasic::outInfo_every        = 15
+CarpetIOBasic::outInfo_vars         = "AdvectHRSC::phi AdvectHRSC::error"
+
+CarpetIOScalar::outscalar_every     = 15
+CarpetIOScalar::outscalar_vars      = "AdvectHRSC::error AdvectHRSC::phi"
+
+IOASCII::out1D_every          = 15
+IOASCII::out1D_x              = "yes"
+IOASCII::out1D_y              = "no"
+IOASCII::out1D_z              = "no"
+IOASCII::out1D_vars           = "AdvectHRSC::phi AdvectHRSC::error Grid::x"
+
+CarpetIOASCII::out_precision = 19
+CarpetIOASCII::out3D_ghosts   = "yes"
+
+# vim: set ft=sh tabstop=20 noexpandtab :

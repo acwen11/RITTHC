@@ -1,0 +1,817 @@
+% *======================================================================*
+%  Cactus Thorn template for ThornGuide documentation
+%  Author: Ian Kelley
+%  Date: Sun Jun 02, 2002
+%  $Header$
+%
+%  Thorn documentation in the latex file doc/documentation.tex
+%  will be included in ThornGuides built with the Cactus make system.
+%  The scripts employed by the make system automatically include
+%  pages about variables, parameters and scheduling parsed from the
+%  relevant thorn CCL files.
+%
+%  This template contains guidelines which help to assure that your
+%  documentation will be correctly added to ThornGuides. More
+%  information is available in the Cactus UsersGuide.
+%
+%  Guidelines:
+%   - Do not change anything before the line
+%       % START CACTUS THORNGUIDE",
+%     except for filling in the title, author, date, etc. fields.
+%        - Each of these fields should only be on ONE line.
+%        - Author names should be separated with a \\ or a comma.
+%   - You can define your own macros, but they must appear after
+%     the START CACTUS THORNGUIDE line, and must not redefine standard
+%     latex commands.
+%   - To avoid name clashes with other thorns, 'labels', 'citations',
+%     'references', and 'image' names should conform to the following
+%     convention:
+%       ARRANGEMENT_THORN_LABEL
+%     For example, an image wave.eps in the arrangement CactusWave and
+%     thorn WaveToyC should be renamed to CactusWave_WaveToyC_wave.eps
+%   - Graphics should only be included using the graphicx package.
+%     More specifically, with the "\includegraphics" command.  Do
+%     not specify any graphic file extensions in your .tex file. This
+%     will allow us to create a PDF version of the ThornGuide
+%     via pdflatex.
+%   - References should be included with the latex "\bibitem" command.
+%   - Use \begin{abstract}...\end{abstract} instead of \abstract{...}
+%   - Do not use \appendix, instead include any appendices you need as
+%     standard sections.
+%   - For the benefit of our Perl scripts, and for future extensions,
+%     please use simple latex.
+%
+% *======================================================================*
+%
+% Example of including a graphic image:
+%    \begin{figure}[ht]
+% 	\begin{center}
+%    	   \includegraphics[width=6cm]{MyArrangement_MyThorn_MyFigure}
+% 	\end{center}
+% 	\caption{Illustration of this and that}
+% 	\label{MyArrangement_MyThorn_MyLabel}
+%    \end{figure}
+%
+% Example of using a label:
+%   \label{MyArrangement_MyThorn_MyLabel}
+%
+% Example of a citation:
+%    \cite{MyArrangement_MyThorn_Author99}
+%
+% Example of including a reference
+%   \bibitem{MyArrangement_MyThorn_Author99}
+%   {J. Author, {\em The Title of the Book, Journal, or periodical}, 1 (1999),
+%   1--16. {\tt http://www.nowhere.com/}}
+%
+% *======================================================================*
+
+% If you are using CVS use this line to give version information
+% $Header$
+
+\documentclass{article}
+
+% Use the Cactus ThornGuide style file
+% (Automatically used from Cactus distribution, if you have a
+%  thorn without the Cactus Flesh download this from the Cactus
+%  homepage at www.cactuscode.org)
+\usepackage{../../../../doc/latex/cactus}
+
+\begin{document}
+
+% The author of the documentation
+\author{David Radice \textless david.radice@aei.mpg.de\textgreater}
+
+% The title of the document (not necessarily the name of the Thorn)
+\title{HRSCCore}
+
+% the date your document was last changed, if your document is in CVS,
+% please use:
+%    \date{$ $Date: 2004-01-07 21:12:39 +0100 (Wed, 07 Jan 2004) $ $}
+\date{August 30 2011}
+
+\maketitle
+
+% Do not delete next line
+% START CACTUS THORNGUIDE
+
+% Add all definitions used in this documentation here
+%   \def\mydef etc
+\newcommand{\IS}{\mathrm{IS}}
+
+% Add an abstract for this thorn's documentation
+\begin{abstract}
+  \noindent This thorn provides a general, low-level, infrastructure to solve
+  multi-dimensional systems of hyperbolic conservation laws in Cactus using
+  finite difference (FD), high resolution shock capturing (HRSC) methods.
+\end{abstract}
+
+\section{Reconstruction \label{sec:reconstruction}}
+We consider a function, $v(x)$, whose volume-averages are sampled on an uniform
+grid
+\[
+  v_i = \int_{x_{i-1/2}}^{x_{i+1/2}} v(x)\, \mathrm{d} x, \qquad x_i = i\,
+  \Delta x, \qquad i \in \mathbb{Z}.
+\]
+We wish to reconstruct the one-sided limits of $v(x)$,
+\[
+  v_{i+1/2}^- = \lim_{x\, \uparrow\, x_{i+1/2}^-} v(x), \qquad
+  v_{i+1/2}^+ = \lim_{x\, \downarrow\, x_{i+1/2}^+} v(x),
+\]
+at $x_{i+1/2}$ from the $v_i$s.
+\subsection{Upwind reconstruction}
+This is the most simple reconstruction
+\[
+  v_{i+1/2}^- = v_i, \qquad v_{i+1/2}^+ = v_{i+1}.
+\]
+
+\subsection{TVD reconstruction}
+We start from the reconstruction of $v_{i+1/2}^-$.
+\begin{enumerate}
+  \item Compute the divided difference
+  \[
+    r_i = \frac{v_{i} - v_{i-1}}{v_{i+1} - v_i}.
+  \]
+  \item Set
+  \[
+    v_{i+1/2}^- = v_i + \frac{1}{2} \phi(r_i) (v_{i+1} - v_i),
+  \]
+  where $\phi$ is an appropriate slope-limiter, see
+  \textit{e.g.}~\cite{leveque}.
+\end{enumerate}
+To reconstruct $v_{i+1/2}^+$.
+\begin{enumerate}
+  \item Compute the divided difference
+  \[
+    r_{i+1} = \frac{v_{i+1} - v_i}{v_{i+2} - v_{i+1}}.
+  \]
+  \item Set
+  \[
+    v_{i+1/2}^+ = v_{i+1} - \frac{1}{2} \phi(r_{i+1}) (v_{i+2} - v_{i+1}).
+  \]
+\end{enumerate}
+
+\subsection{LimO3 reconstruction}
+The 3rd order limited (LimO3) reconstruction has been recently proposed
+by \cite{cada} and it is implemented following \cite{mignone}. We only
+present the reconstruction of $v_{i+1/2}^-$ since the one for
+$v_{i+1/2}^+$ is symmetric.
+\begin{enumerate}
+  \item Compute $\Delta_{i-1/2} = v_{i} - v_{i-1}$, $\Delta_{i+1/2} =
+  v_{i+1} - v_i$ and $\theta = \Delta_{i-1/2}/\Delta_{i+1/2}$.
+  \item Compute
+  \[
+    \chi = \max\left[0,\min\left(1,\ \frac{1}{2} + \frac{\eta -
+    1}{2\epsilon}\right)\right], \qquad
+    \eta = \frac{\Delta^2_{i-1/2} + \Delta^2_{i+1/2}}{(r\Delta x)^2},
+  \]
+  where $\epsilon$ is typically $10^{-12}$ and $0 < r \leq 1$. $\eta$
+  measures the curvature of the solution and $r$ is used to discriminate
+  between smooth extrema and shallow gradients. Large values of $r$
+  result in more accurate reconstruction, but larger violations of the
+  TVD condition \cite{cada}. $\chi$ is used to switch off limiting near
+  extrema.
+  \item Compute the slope limiter
+  \[
+    \phi(\theta) = \left\{\begin{array}{ll}
+      \max[0, \min(P_3(\theta), 2\theta, 1.6)] & \textrm{if } \theta
+        \geq 0, \\
+      \max\left[0, \min\left(P_3(\theta), -\frac{\theta}{2}\right)\right]
+        & \textrm{if } \theta < 0.
+    \end{array}\right.
+  \]
+  where $P_3(\theta) = (2 + \theta)/3$.
+  \item Finally set
+  \[
+    v_{i+1/2}^- = v_i + \frac{\Delta_{i+1/2}}{2}\left[P_3(\theta) +
+      \chi\left(\phi(\theta) - P_3(\theta)\right)\right].
+  \]
+\end{enumerate}
+
+\subsection{MP5 reconstruction}
+The MP5 reconstruction was firstly developed by Suresh and Huynh
+\cite{suresh} and it is implemented following \cite{mignone}. We only
+present the reconstruction of $v_{i+1/2}^-$ since the one for
+$v_{i+1/2}^+$ is symmetric.
+\begin{enumerate}
+  \item Perform a fifth order unlimited reconstruction of $v_{i+1/2}^-$:
+  \[
+    v_{i+1/2} = \frac{2 v_{i-2} - 13 v_{i-1} + 47 v_i + 27 v_{i+1} - 3
+    v_{i+1}}{60}.
+  \]
+  \item Compute the monotonicity preserving bound
+  \[
+    v^{\mathrm{MP}} = v_i + \mathrm{minmod}(\Delta_{i+1/2},
+    \alpha\Delta_{i-1/2}),
+  \]
+  where $\Delta_{i+1/2} = v_{i+1} - v_i$ and $\alpha$ is a constant,
+  usually taken to be $4$, that controls the maximum steepness of the
+  reconstruction. In particular the MP5 reconstruction is guarenteed to
+  yield a TVD method as long as $\mathrm{CFL} < 1 / (1+\alpha)$.
+  \item Set
+  \[
+    v_{i+1/2}^- =
+    \begin{cases}
+      v_{i+1/2} & \textrm{if } (v_{i+1/2}-v_i)(v_{i+1/2}-v^{\mathrm{MP}})
+      < 0 \\
+      \mathrm{median}(v^{\min}, v_{i+1/2}, v^{\max}) &
+      \textrm{otherwise};
+    \end{cases}
+  \]
+  where $v^{\min}$ and $v^{\max}$ are computed as follows.
+  \begin{enumerate}
+    \item Set $d_i = \Delta_{i+1/2} - \Delta_{i-1/2}$
+    \item Set $d^{\mathrm{M4}} = \mathrm{minmod}(4 d_i - d_{i+1}, 4
+    d_{i+1} - d_i, d_i, d_{i+1})$
+    \item Define the median, $v^{\mathrm{MD}}$, and large,
+    $v^{\mathrm{LC}}$ curvatures
+    \[
+      v^{\mathrm{MD}} = \frac{v_i+v_{i+1}}{2} - \frac{1}{2}
+      d^{\mathrm{M4}}, \qquad
+      v^{\mathrm{LC}} = v_i + \frac{1}{2} \Delta_{i-1/2} + \frac{4}{3}
+      d^{\mathrm{M4}}.
+    \]
+    \item Compute $v^{\max}$ and $v^{\min}$
+    \begin{align*}
+      v^{\min} &= \max\big[\min(v_i, v_{i+1}, v^{\mathrm{MD}}),
+        \min(v_i, v^{\mathrm{UL}}, v^{\mathrm{LC}})\big], \\
+      v^{\max} &= \min\big[\max(v_i, v_{i+1}, v^{\mathrm{MD}}),
+        \max(v_i, v^{\mathrm{UL}}, v^{\mathrm{LC}})\big].
+    \end{align*}
+  \end{enumerate}
+\end{enumerate}
+In the previous
+\[
+  \mathrm{minmod}(a,b) = \frac{\mathrm{sign}(a) + \mathrm{sign}(b)}{2}
+  \min(|a|, |b|)
+\]
+and
+\[
+  \mathrm{median}(a,b,c) = a + \mathrm{minmod}(b-a, c-a).
+\]
+
+\subsection{WENO reconstruction}
+We start from the reconstruction of $v_{i+1/2}^-$.
+\begin{enumerate}
+  \item We select the $R+1$ stencils,
+  \[
+    S_k = \{ x_{i+k-r+1}, x_{i+k-r+2}, \ldots, x_{i+k} \}, \qquad k = 0,
+    \ldots, R.
+  \]
+  of width $r$. $R = r-1$ in the upwind-biased WENO reconstruction
+  originally proposed by Jiang-Shu \cite{jiang}, which we call WENO-JS. $R =
+  r$ in the symmetric reconstruction by Mart\'in et al. \cite{martin}, which we
+  call WENO-SYM.
+  \item The reconstructing polynomial associated with each stencil, $S_k^i$, is
+  \[
+    v_{i+1/2}^{k-} = \sum_{l=0}^R a^r_{kl}\, v_{i-r+k+l+1}.
+  \]
+  \item Finally we set
+  \[
+    v_{i+1/2}^- = \sum_{k=0}^R \omega_k\, v^{k-}_{i+1/2},
+  \]
+  where the weights, $\omega_k$, are
+  \[
+    \omega_k = \frac{\alpha_k}{\sum_{l=0}^R \alpha_l}, \qquad
+    \alpha_k = \frac{C^r_k}{(\epsilon + \IS_k)^p},
+  \]
+  where the coefficients $C^r_k$ may be chosen to maximise the formal accuracy
+  of the method or other criteria \cite{martin}. $\epsilon$ and $p$ are positive
+  coefficients and one usually choose $\epsilon \sim 10^{-3}$ and $p = 2$
+  \cite{jiang}. In the previous $\IS_k$ is the smoothness indicator associated
+  with the $k$-sim stencil:
+  \[
+    \IS_k = \sum_{m=1}^{r-1} \bigg[ \sum_{l=0}^{r} d^r_{kml}\, v_{i-r+k+l+1}
+    \bigg]^2.
+  \]
+  The non-linear smooth indicators, $\IS_k$, can be refined to avoid
+  over-adaptation, as suggested in \cite{taylor}, by setting
+  \[
+    \IS_k = \left\{
+    \begin{array}{ll}
+      0,     & R(\IS) < \alpha_{RL},    \\
+      \IS_k, & \textrm{otherwise},
+    \end{array}\right.
+  \]
+  where
+  \[
+    R(\IS) = \frac{\displaystyle\max_{0 \leq k \leq R} \IS_k}{\displaystyle
+    \epsilon + \min_{0\leq k \leq R} \IS_k}
+  \]
+  and $\alpha_{RL} \sim 10$ is an arbitrary coefficient.
+\end{enumerate}
+
+Any WENO method is identified by the choice of $R$, the tables $a^r_{kl}$,
+$C^r_k$ and $d^r_{kml}$ and the coefficients $\epsilon$, $p$ and $\alpha_{RL}$.
+Values for $a^r_{kl}$, $C^r_k$ and $d^r_{kml}$ for different WENO methods are
+shown in the Tables 1--7.
+
+The reconstruction of $v^+_{i+1/2}$ can be obtained in a similar way by choosing
+$\tilde{C}^r_k = C^r_{r-k}$ in the previous procedure instead of $C^r_k$, or by
+inverting the stencil, i.e.~by setting
+\[
+  w_{i+k+1} = v_{i-k}, \quad k = 0,1,\ldots, R
+\]
+and
+\[
+  v^+_{i+1/2} = w^-_{i+1/2}.
+\]
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lll}
+  \hline
+            & $l = 0$ & $l = 1$ \\
+  \hline
+    $k = 0$ & $-1/2$  & $3/2$ \\
+    $k = 1$ & $1/2$   & $1/2$ \\
+    $k = 2$ & $3/2$   & $-1/2$ \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  $a^2_{kl}$ coefficients for WENO-JS and WENO-SYM, note that $k = 2$ is
+  relevant only for the latter. From \cite{jiang}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llll}
+  \hline
+            & $l = 0$ & $l = 1$ & $l = 2$ \\
+  \hline
+    $k = 0$ & $2/6$   & $-7/6$  & $11/6$  \\
+    $k = 1$ & $-1/6$  & $5/6$   & $2/6$   \\
+    $k = 2$ & $2/6$   & $5/6$   & $-1/6$  \\
+    $k = 3$ & $11/6$  & $-7/6$  & $2/6$   \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  $a^3_{kl}$ coefficients for WENO-JS and WENO-SYM, note that $k = 3$ is
+  relevant only for the latter. From \cite{martin}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lllll}
+  \hline
+            & $l = 0$  & $l = 1$   & $l = 2$   & $l = 3$ \\
+  \hline
+    $k = 0$ & $-6/24$  & $26/24$   & $-46/24$  & $50/24$ \\
+    $k = 1$ & $2/24$   & $-10/24$  & $26/24$   & $6/24$  \\
+    $k = 2$ & $-2/24$  & $14/24$   & $14/24$   & $-2/24$ \\
+    $k = 3$ & $6/24$   & $26/24$   & $-10/24$  & $2/24$  \\
+    $k = 4$ & $50/24$  & $-46/24$  & $26/24$   & $-6/24$ \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  $a^4_{kl}$ coefficients for WENO-JS and WENO-SYM, note that $k = 4$ is
+  relevant only for the latter. From \cite{martin}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lll}
+  \hline
+            & $m = 1$            \\
+            \cline{2-3}
+            & $l = 0$ & $l = 1$ \\
+  \hline
+    $k = 0$ & $1$     & $-1$    \\
+    $k = 1$ & $1$     & $-1$    \\
+    $k = 2$ & $1$     & $-1$    \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  $d^2_{kml}$ coefficients for WENO-JS and WENO-SYM, note that $k = 2$ is
+  relevant only for the latter. From \cite{jiang}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llll}
+  \hline
+            & $m = 1$                     \\
+            \cline{2-4}
+            & $l = 0$ & $l = 1$ & $l = 2$ \\
+  \hline
+    $k = 0$ & $1/2$   & $-4/2$  & $3/2$   \\
+    $k = 1$ & $-1/2$  & $0$     & $1/2$   \\
+    $k = 2$ & $-3/2$  & $4/2$   & $-1/2$  \\
+    $k = 3$ & $-5/2$  & $8/2$   & $-3/2$  \\
+                                          \\
+            & $m = 2$                     \\
+            \cline{2-4}
+            & $l = 0$ & $l = 1$   & $l = 2$ \\
+            \cline{2-4}
+    $k = 0$ & $\beta$ & $-2\beta$ & $\beta$ \\
+    $k = 1$ & $\beta$ & $-2\beta$ & $\beta$ \\
+    $k = 2$ & $\beta$ & $-2\beta$ & $\beta$ \\
+    $k = 3$ & $\beta$ & $-2\beta$ & $\beta$ \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  $d^3_{kml}$ coefficients for WENO-JS and WENO-SYM, note that $k = 3$ is
+  relevant only for the latter. $\beta = \sqrt{13/12}$. From \cite{martin}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lllll}
+  \hline
+            & $m = 1$                                             \\
+            \cline{2-5}
+            & $l = 0$    & $l = 1$     & $l = 2$      & $l = 3$   \\
+  \hline
+    $k = 0$ & $-2/6$     & $9/6$       & $-18/6$      & $11/6$    \\
+    $k = 1$ & $1/6$      & $-6/6$      & $3/6$        & $2/6$     \\
+    $k = 2$ & $-2/6$     & $-3/6$      & $6/6$        & $-1/6$    \\
+    $k = 3$ & $-11/6$    & $18/6$      & $-9/6$       & $2/6$     \\
+    $k = 4$ & $-26/6$    & $57/6$      & $-42/6$      & $11/6$    \\
+                                                                  \\
+            & $m = 2$                                             \\
+            \cline{2-5}
+            & $l = 0$    & $l = 1$     & $l = 2$      & $l = 3$   \\
+            \cline{2-5}
+    $k = 0$ & $-\beta$   & $4\beta$    & $-5\beta$    & $2\beta$  \\
+    $k = 1$ & $0$        & $\beta$     & $-2\beta$    & $\beta$   \\
+    $k = 2$ & $\beta$    & $-2\beta$   & $\beta$      & $0$       \\
+    $k = 3$ & $2\beta$   & $-5\beta$   & $4\beta$     & $-\beta$  \\
+    $k = 4$ & $3\beta$   & $-8\beta$   & $7\beta$     & $-2\beta$ \\
+                                                                  \\
+            & $m = 3$                                             \\
+            \cline{2-5}
+            & $l = 0$    & $l = 1$     & $l = 2$      & $l = 3$   \\
+            \cline{2-5}
+    $k = 0$ & $-\gamma$  & $3\gamma$   & $-3\gamma$   & $\gamma$  \\
+    $k = 1$ & $-\gamma$  & $3\gamma$   & $-3\gamma$   & $\gamma$  \\
+    $k = 2$ & $-\gamma$  & $3\gamma$   & $-3\gamma$   & $\gamma$  \\
+    $k = 3$ & $-\gamma$  & $3\gamma$   & $-3\gamma$   & $\gamma$  \\
+    $k = 4$ & $-\gamma$  & $3\gamma$   & $-3\gamma$   & $\gamma$  \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  $d^4_{kml}$ coefficients for WENO-JS and WENO-SYM, note that $k = 4$ is
+  relevant only for the latter. $\beta = \sqrt{13/12}$, $\gamma =
+  \sqrt{781/720}$. From \cite{martin}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llll}
+  \hline
+            & $C^2_k$      & $C^3_k$      & $C^4_k$      \\
+  \hline
+  $k = 0$   & $1/3$        & $1/10$       & $1/35$       \\
+  $k = 1$   & $2/3$        & $6/10$       & $12/35$      \\
+  $k = 2$   & $-$          & $3/10$       & $18/35$      \\
+  $k = 3$   & $-$          & $-$          & $4/35$       \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  Order-optimized optimal weights $C^r_k$ for WENO-JS when $r = 2,3$ and $4$.
+  From \cite{martin}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llll}
+  \hline
+            & $C^2_k$      & $C^3_k$      & $C^4_k$      \\
+  \hline
+  $k = 0$   & $1/6$        & $1/20$       & $1/70$       \\
+  $k = 1$   & $4/6$        & $9/20$       & $16/70$      \\
+  $k = 2$   & $1/6$        & $9/20$       & $36/70$      \\
+  $k = 3$   & $-$          & $1/20$       & $16/70$      \\
+  $k = 4$   & $-$          & $-$          & $1/70$       \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  Order-optimized optimal weights $C^r_k$ for WENO-SYM (WENO-SYMOO) when $r = 3$
+  and $r = 4$.  From \cite{martin}.
+}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lll}
+  \hline
+            & $C^3_k$          & $C^4_k$          \\
+  \hline
+  $k = 0$   & $0.094647545896$ & $0.040195483373$ \\
+  $k = 1$   & $0.428074212384$ & $0.249380000671$ \\
+  $k = 2$   & $0.408289331408$ & $0.480268625626$ \\
+  $k = 3$   & $0.068988910311$ & $0.200977547673$ \\
+  $k = 4$   & $-$              & $0.029178342658$ \\
+  \hline
+\end{tabular*}
+\end{center}
+\caption{
+  Bandwidth-optimized optimal weights $C^r_k$ for WENO-SYM (WENO-SYMBO), when $r
+  = 3$ and $r = 4$. From \cite{martin}.
+}
+\end{table}
+
+\section{Flux vector splitting methods for hyperbolic conservation laws}
+
+\subsection{Scalar hyperbolic conservation laws}
+In this section we consider an hyperbolic conservation law of the form:
+\begin{equation}\label{eq:hrsccore.scalar.claw}
+  \partial_t u + \partial_x f(u) = 0,
+\end{equation}
+which we want to solve on a uniform grid, $x_i = i\, \Delta x$, using a
+flux-conservative method. We can discretize (\ref{eq:hrsccore.scalar.claw}) with
+the method of lines,
+\begin{equation}\label{eq:hrsccore.scalar.claw.fd}
+  \partial_t u \approx L(u) = \frac{f_{i-1/2}-f_{i+1/2}}{\Delta x},
+\end{equation}
+where $f_{i-1/2}$ and $f_{i+1/2}$ are suitable approximations of the fluxes
+across $x_{i-1/2}$ and $x_{i+1/2}$ respectively.
+
+\subsubsection{Lax-Friedrichs flux split}
+We begin with the Lax-Friedrichs flux split method (LF). For all $i$.
+\begin{enumerate}
+  \item We split the flux function, $f$, into a positive and a negative part,
+  \[
+    f(u) = f^+(u) + f^-(u), \qquad f^\pm(u) = \frac{1}{2}\big(f(u) \pm | s_i |
+    u\big),
+  \]
+  $|s_i|$ being an estimate of the maximum absolute speed in $x_i$. $s_i$ can be
+  constant over the whole grid, global Lax-Friedrichs, or not, local
+  Lax-Friedrichs.
+  \item We set
+  \[
+    v_{i+k} = f^+\big(u(x_{i+k})\big), \qquad k = - r + 1, \ldots, R.
+  \]
+  \item We reconstruct $v_{i+1/2}^-$ using one of the reconstructor operator
+  presented in Section \ref{sec:reconstruction} and set
+  \[
+    f_{i+1/2}^+ = v_{i+1/2}^-.
+  \]
+  \item We set
+  \[
+    v_{i+k} = f^-\big(u(x_{i+k})\big), \qquad k = -R, \ldots, r-1.
+  \]
+  \item We reconstruct $v_{i+1/2}^+$ and set
+  \[
+    f_{i+1/2}^- = v_{i+1/2}^+.
+  \]
+  \item Finally we set
+  \[
+    f_{i+1/2} = f_{i+1/2}^- + f_{i+1/2}^+
+  \]
+  and evolve in time using (\ref{eq:hrsccore.scalar.claw.fd}).
+\end{enumerate}
+
+\subsubsection{Roe flux split}
+A less diffusive alternative is the Roe flux split method. For all $i$.
+\begin{itemize}
+  \item We set
+  \[
+    v_{i+k} = f\big(u(x_{i+k})\big), \qquad k = -r, \ldots r.
+  \]
+  \item We compute the speed $s_{i+1/2} = f'\big(u(x_{i+1/2})\big)$,
+  where $u_{i+1/2}$ can be computed using a Roe average or simply by putting:
+  \[
+    u_{i+1/2} = \frac{1}{2} ( u_i + u_{i+1} ).
+  \]
+  \item If $s_{i+1/2} > 0$ we set
+  \[
+    f_{i+1/2} = v_{i+1/2}^-,
+  \]
+  otherwise we set
+  \[
+    f_{i+1/2} = v_{i+1/2}^+.
+  \]
+  Finally we evolve in time using (\ref{eq:hrsccore.scalar.claw.fd}).
+\end{itemize}
+To avoid the creation of spurious shock waves in the case of transonic
+rarefactions the previous method is corrected in with an entropy fix, (RF).
+We compute the speeds $s_{i}$ and $s_{i+1}$. If $s_{i} s_{i+1} > 0$ then we use
+the Roe method, otherwise we compute $f_{i+1/2}$ using the Lax-Friedrichs flux
+split.
+
+\subsection{Hyperbolic systems of conservation laws}
+In this section we consider the extension of the previous methods to the case of
+hyperbolic systems of conservation laws, of the form
+\begin{equation}\label{eq:hrsccore.system}
+  \partial_t q^\alpha(u) + \partial_x f^\alpha(u) = 0, \qquad \alpha =
+  1,2,\ldots, M.
+\end{equation}
+In this section Greek indices will run over $1,2,\ldots, M$ and we will use
+Einstein's convention of summation over repeated indices.
+
+Reasoning along the same lines of the previous section we want to solve
+(\ref{eq:hrsccore.system}) using the method of lines,
+\begin{equation}\label{eq:hrsccore.system.fd}
+  \partial_t q^\alpha(u) = \frac{1}{\Delta x} \big[ f_{i-1/2}^\alpha -
+  f_{i+1/2}^\alpha \big],
+\end{equation}
+on a regular grid $x_i = i \Delta x$. To solve this system we may employ the
+methods presented in the previous section in a component-wise or
+characteristic-wise.
+
+In order to perform a characteristic decomposition of
+(\ref{eq:hrsccore.system.fd}) We start by defining the Jacobian matrices
+\[
+  F^{\alpha}_{\phantom{\alpha}\beta} = \frac{\partial f^\alpha}{\partial
+  u^\beta}\bigg|_{u_{i+1/2}^\beta}, \qquad Q^{\alpha}_{\phantom{\alpha}\beta} =
+  \frac{\partial q^\alpha}{\partial u^\beta}\bigg|_{u_{i+1/2}^\beta},
+\]
+where, again, $u_{i+1/2}^\beta$ may be computed with a Roe average or simply by
+putting\footnote{Note that we are averaging on the \emph{primitives}.}
+\[
+  u_{i+1/2}^\alpha = \frac{1}{2} \big[ u_i^\alpha + u_{i+1}^\alpha \big].
+\]
+We consider the generalized eigenvalues problems
+\[
+  F^\alpha_{\phantom{\alpha}\beta}\, r_{(\gamma)}^\beta = \lambda_{(\gamma)}\,
+  Q^\alpha_{\phantom{\alpha}\beta}\, r_{(\gamma)}^\beta,
+  \qquad
+  F^\alpha_{\phantom{\alpha}\beta}\, l^{(\gamma)}_\alpha = \lambda^{(\gamma)}\,
+  Q^\alpha_{\phantom{\alpha}\beta}\, l^{(\gamma)}_\alpha,
+\]
+where no-summation is intended over the indices in the round brackets.
+
+If we define
+\[
+  L^\alpha_{\phantom{\alpha}\beta} = l_\beta^{(\alpha)}, \qquad
+  R^\alpha_{\phantom{\alpha}\beta} = r^\alpha_{(\beta)}, \qquad
+  \Lambda^\alpha_{\phantom{\alpha}\beta} = \lambda_{(\alpha)}\,
+  \delta^\alpha_{\phantom{\alpha}\beta},
+\]
+we can write the generalized eigenvalues problems as
+\begin{equation}\label{eq:hrsccore.eigproblem}
+  L^\alpha_{\phantom{\alpha}\beta}\, F^\beta_{\phantom{\beta}\gamma} =
+  \Lambda^\alpha_{\phantom{\alpha}\beta}\, Q^\beta_{\phantom{\beta}\delta}\,
+  L^\delta_{\phantom{\delta}\gamma}, \qquad
+  F^\alpha_{\phantom{\alpha}\beta}\, R^\beta_{\phantom{\beta}\gamma} =
+  \Lambda^\alpha_{\phantom{\alpha}\beta}\, R^\beta_{\phantom{\beta}\delta}\,
+  Q^\delta_{\phantom{\delta}\gamma}.
+\end{equation}
+It is also easy to see, from the definitions of $L^\alpha_{\phantom{\alpha}
+\beta}$ and $R^\alpha_{\phantom{\alpha} \beta}$, that
+\[
+  L^\alpha_{\phantom{\alpha}\beta}\, R^\beta_{\phantom{\beta}\gamma} =
+  \delta^\alpha_{\phantom{\alpha}\gamma}.
+\]
+
+With these definitions in place we can readily see how to decompose
+(\ref{eq:hrsccore.system}) in characteristic fields, at least in the linear
+case. There we have
+\[
+  Q^\alpha_{\phantom{\alpha}\beta}\, \partial_t u^\beta +
+  F^\alpha_{\phantom{\alpha}\beta}\, \partial_x u^\beta = 0.
+\]
+If we define $w^\alpha = L^\alpha_{\phantom{\alpha}\beta} u^\beta$, the previous
+becomes
+\[
+  Q^\alpha_{\phantom{\alpha}\beta}\, R^\beta_{\phantom{\beta} \gamma}\,
+  \partial_t w^\gamma + \Lambda^\alpha_{\phantom{\alpha} \beta}\,
+  R^\beta_{\phantom{\beta} \delta}\, Q^\delta_{\phantom{\delta} \gamma}\,
+  \partial_x w^\gamma = 0,
+\]
+that is
+\begin{equation}\label{eq:hrsccore.system.characteristics}
+  \partial_t w^\alpha + \Lambda^{\alpha}_{\phantom{\alpha}\beta}\, \partial_x
+  w^\beta = 0.
+\end{equation}
+
+In the non-linear case a characteristic decomposition can be introduced with the
+variable transformation
+\[
+  u^\alpha \mapsto w^\alpha \colon \frac{\partial w^\alpha}{\partial u^\beta} =
+  L^\alpha_{\phantom{\alpha}\beta} \implies \frac{\partial u^\alpha}{\partial
+  w^\beta} = R^\alpha_{\phantom{\alpha}\beta}
+\]
+to obtain again (\ref{eq:hrsccore.system.characteristics}). Unfortunately such
+variable transformation is usually only defined locally. For this reason, for
+the purposes of the numerical method, we perform, instead, a decomposition on
+the pseudo-characteristic variables, i.e.~locally by linearizing the equations.
+To do that we define
+\[
+  \eta^\alpha = L^\alpha_{\phantom{\alpha}\beta}\, q^\beta, \qquad
+  \phi^\alpha = L^\alpha_{\phantom{\alpha}\beta}\, f^\beta,
+\]
+so that we can write (\ref{eq:hrsccore.system}) as
+\begin{equation}\label{eq:hrsccore.system.diag}
+  \partial_t \eta^\alpha + \partial_x \phi^\alpha = 0,
+\end{equation}
+which can be treated, at least locally, as a system of independent equations.
+
+We summarize the finite difference algorithm for systems of conservation laws in
+the characteristic-wise variant.
+\begin{enumerate}
+  \item We compute $u_{i+1/2}^\alpha$ and use it to compute
+  $F^\alpha_{\phantom{\alpha}\beta}$ and $Q^\alpha_{\phantom{\alpha}\beta}$.
+  \item We solve the generalized eigenvalue problem
+  (\ref{eq:hrsccore.eigproblem}) and compute $L^\alpha_{\phantom{\alpha}\beta}$,
+  $R^\alpha_{\phantom{\alpha}\beta}$ and
+  $\Lambda^\alpha_{\phantom{\alpha}\beta}$.
+  \item We set
+  \[
+    \eta_{i+k}^\alpha = L^\alpha_{\phantom{\alpha}\beta}\, u^\beta_{i+k},
+    \qquad \phi_{i+k}^\alpha = L^\alpha_{\phantom{\alpha}\beta}\,
+    f^\beta_{i+k}, \qquad k = -r, \ldots, r.
+  \]
+  \item We compute the fluxes, $\phi_{i+1/2}^\alpha$, using LF or F
+  component-wise for the system of equations (\ref{eq:hrsccore.system.diag}).
+
+  The Roe speed $s_{i+1/2}$ for the $\alpha$-sim component is, obviously,
+  $\lambda^{(\alpha)}$. The speeds $s_i$ and $s_{i+1}$ are, in principle, not
+  well defined, because the characteristic decomposition and hence the
+  velocities are only defined at $x_{i+1/2}$. A standard way to workaround this
+  problem is to use an analytic expression for the characteristic variables and
+  their associated physical meaning (contact wave, sonic waves and so on\ldots)
+  to associate the speeds at different points (e.g.~the contact discontinuity
+  wave speed in different points of the grid). In the general case this could be
+  not possible because we may not know the details of the decomposition, which
+  we may want to perform numerically, or because the waves could cross each
+  others (this does not happen in the Newtonian Euler equations with ideal-gas
+  EOS) or simply because the computation of the speeds is expensive.  For this
+  reason in the Roe method we could identify shocks that are potentially entropy
+  violating by noting that
+  \[
+    \frac{\partial \phi}{\partial \eta} = \frac{\partial_x \phi}{\partial_x
+    \eta},
+  \]
+  so that a change in the sign of the velocity can occur only if $\phi$ or
+  $\eta$ are not monotonic as functions of the position in the vicinity of
+  $x_{i+1/2}$.
+  \item We set
+  \[
+    f^\alpha_{i+1/2} = R^\alpha_{\phantom{\alpha}\beta}\, \phi^\beta_{i+1/2}.
+  \]
+\end{enumerate}
+
+\subsection{The multidimensional case}
+The multidimensional case can be handled using a direction splitting approach.
+We consider a system of equations of the form
+\[
+  \partial_t q^\alpha(u) + \partial_i \mathcal{F}^{i\alpha}(u) = 0.
+\]
+This can be split as
+\[
+  \partial_t q^\alpha(u) + \partial_x f^\alpha(u) + \partial_y g^\alpha(u) +
+  \partial_z h^\alpha(u) = 0
+\]
+and solved, in analogy of what has been done in the previous sections, using the
+method of lines
+\[
+  \partial_t q^\alpha_{ijk} =
+  \frac{1}{\Delta x}\big[ f^\alpha_{i-1/2} - f^\alpha_{i+1/2} \big] +
+  \frac{1}{\Delta y}\big[ g^\alpha_{j-1/2} - g^\alpha_{j+1/2} \big] +
+  \frac{1}{\Delta z}\big[ h^\alpha_{k-1/2} - h^\alpha_{k+1/2} \big].
+\]
+The fluxes $f^\alpha$, $g^\alpha$ and $h^\alpha$ can be computed as in the
+one-dimensional case.
+
+\begin{thebibliography}{9}
+
+\bibitem{cada}
+{\u{C}ada and Torrilhon {\em J. Comput. Phys.} 228 (2009) 4118--4145}
+
+\bibitem{jiang}
+{Jiang  and Shu {\em J. Comput. Phys.} 126 (1996) 202--228}
+
+\bibitem{leveque}
+{LeVeque {\em Finite Volume Methods for Hyperbolic Problems} Cambridge
+University press (2002)}
+
+\bibitem{martin}
+{Mart\'in, Taylor, Wu and Weirs {\em J. Comput. Phys.} 220 (2006)
+270--289}
+
+\bibitem{mignone}
+{A. Mignone, Tzeferacos and Bodo {\em J. Comput. Phys.} 229 (2010)
+5796--5920}
+
+\bibitem{shu}
+{Shu, Essentially non-oscillatory and weighted essentially non-oscillatory
+schemes for hyperbolic conservation laws {\em NASA ICASE Report} 97--65 (1997)}
+
+\bibitem{suresh}
+{A. Suresh and Huynh {\em J. Comput. Phys.} 136 (1997) 83--99}
+
+\bibitem{taylor}
+{Taylor, Wu and Mart\'in {\em J. Comput. Phys.} 223 (2007) 384--397}
+
+\end{thebibliography}
+
+% Do not delete next line
+% END CACTUS THORNGUIDE
+
+\end{document}

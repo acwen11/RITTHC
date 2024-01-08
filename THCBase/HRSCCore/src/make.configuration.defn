@@ -1,0 +1,3 @@
+ALL_UTILS += hrscc_test_gll_element \
+        hrscc_test_weno_derivative \
+        hrscc_test_weno_reconstruction

@@ -1,0 +1,14 @@
+HRSCCORE_SRC_DIR = $(wildcard $(PACKAGE_DIR)/*/HRSCCore/src)
+
+# Compile rules for the utilities
+$(UTIL_DIR)/%: $(BUILD_DIR)/HRSCCore/%.o
+	@echo Creating $* in $(UTIL_DIR) from $<
+	if [ ! -d $(UTIL_DIR) ]; then $(MKDIR) $(MKDIRFLAGS) $(UTIL_DIR) ; fi
+	$(CXX) $(CXXFLAGS) $(CREATEEXE) $@ $(DEBUG_LD) $(LDFLAGS) $(EXTRAFLAGS) $(TOP)/datestamp.o $< -L$(CCTK_LIBDIR) -lthorn_HRSCCore -lthorn_CPPUtils -lthorn_Cactus -lthorn_CactusBindings $(GENERAL_LIBRARIES)
+
+$(BUILD_DIR)/HRSCCore/%.o: $(HRSCCORE_SRC_DIR)/utils/%.cc
+	@echo Compiling $<
+	if [ ! -d $(BUILD_DIR)/HRSCCore ]; then $(MKDIR) $(MKDIRFLAGS) $(BUILD_DIR)/HRSCCore ; fi
+	cd $(BUILD_DIR)/HRSCCore
+	$(CXX) $< $(CXXFLAGS) -DCCODE -I$(HRSCCORE_SRC_DIR) -I$(CONFIG) -I$(BINDINGS_DIR)/include -I$(BINDINGS_DIR)/include/HRSCCore -I$(FLESH_DIR)/include -I$(CCTK_HOME)/arrangements $(SYS_INC_DIRS:%=-I%) -I$(BOOST_INC_DIRS) $(CCOMPILEONLY) $@ -c
+

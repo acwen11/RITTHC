@@ -1,0 +1,29 @@
+# Schedule definitions for thorn SDGMGrid
+
+SCHEDULE SDGMG_Startup AT CCTK_STARTUP
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Register banner"
+
+# Schedule the element-local DGFE coordinate modifications after the
+# multi-block interpolation boundaries have been set up, since this setup
+# routine would not know how to deal with the modified coordinates:
+# (1) several points may coincide on element boundaries,
+# (2) finding the grid point corresponding to a coordinate location is not
+#     implemented.
+# The multi-block interpolation setup occors in two stages:
+# (1) Interpolate2Init defines the grid point types
+# (2) the first actual interpolation, e.g. in Interpolate2Test, will
+#     convert coordinates to grid point indices and interpolation stencils.
+SCHEDULE SDGMG_SetupCoordinates AT CCTK_BASEGRID \
+AFTER (MultiPatch_SpatialCoordinates Interpolate2Init Interpolate2Test) \
+BEFORE MaskBase_SetupMask
+{
+    LANG: C
+} "Setup the coordinates"
+
+SCHEDULE SDGMG_SetupWeights IN SetupMask
+{
+    LANG: C
+} "Setup the weights"

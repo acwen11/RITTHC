@@ -1,0 +1,7 @@
+REQUIRES Boost CPPUtils FDCore
+
+PROVIDES HRSCCore
+{
+    SCRIPT
+    LANG
+}

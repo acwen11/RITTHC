@@ -1,0 +1,5 @@
+# Interface definition for thorn FDCore
+IMPLEMENTS: FDCore
+
+# C/C++ interface
+INCLUDES HEADER: finite_difference.h IN finite_difference.h
