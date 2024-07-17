@@ -1,0 +1,4 @@
+python coldslice_SC.py -y table -w table -o APR4_THC -t 0.01 -l --rho-min 617.6269145886166
+
+eg.
+python coldslice_SC.py -y APR_3335_rho420_temp187_ye66_gitMf0fc21f_20240329_extended_adj_1AMU.h5 -w APR_3335_rho420_temp187_ye66_gitMf0fc21f_20240329_extended_adj_1AMU.h5 -o APR4ex_1AMU -t 0.01 -l --rho-min 617.6269145886166 --resample 1000
