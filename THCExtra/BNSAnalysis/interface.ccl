@@ -2,7 +2,7 @@
 # $Header:$
 
 IMPLEMENTS:     BNSAnalysis
-INHERITS:       ADMBase, Grid, HydroBase, PizzaBase, THC_Core
+INHERITS:       ADMBase, Grid, HydroBase, PizzaBase #, THC_Core
 
 USES INCLUDE: finite_difference.h
 USES INCLUDE: utils_macro.h

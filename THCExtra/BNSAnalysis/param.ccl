@@ -1,11 +1,30 @@
 # Parameter definitions for thorn BNSAnalysis
 # $Header:$
 
-SHARES: THC_Core
-USES CCTK_REAL atmo_rho
-USES CCTK_REAL atmo_tolerance
-USES INT fd_order
-USES BOOLEAN verbose
+# SHARES: THC_Core
+# USES CCTK_REAL atmo_rho
+# USES CCTK_REAL atmo_tolerance
+# USES INT fd_order
+# USES BOOLEAN verbose
+
+CCTK_REAL atmo_rho "Atmospheric density. Points below this value are flagged as atmosphere for certain calculations. I should probably get this value from IGM..."
+{
+	0.0:* :: "Positive"
+} 0.0
+
+CCTK_REAL atmo_tolerance "Atmosphere cutoff density = atmo_rho * (1 + atmo_tolerance)"
+{
+	0.0:* :: "Positive"
+} 0.0
+
+CCTK_INT fd_order "Spacetime FD order. I should probably get this value from Baikal..."
+{
+  2:8:2 :: "Supported values are 2, 4, 6 and 8. Baikal default is 4."
+} 4
+
+BOOLEAN verbose "verbose"
+{
+} "no"
 
 PRIVATE:
 
