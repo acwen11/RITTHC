@@ -8,9 +8,10 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
     use ieee_arithmetic
 #endif
     use table3d_mod
-    use lk_interpolations
+    ! use lk_interpolations
     use units
     implicit none
+    !DECLARE_CCTK_FUNCTIONS
 
     REAL*8, INTENT(IN)  :: rho, temp, ye
     REAL*8, INTENT(OUT) :: R_nue, R_nua, R_nux, Q_nue, Q_nua, Q_nux
@@ -46,7 +47,8 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
               eta_n, eta_p, eta_hat, eta_e, &
               eta_np, eta_pn, enr_tilde_p, &
               enr_tilde_m
-
+  
+    mass_fact = 930.17637269
     Emissions_cgs = 0
 
 #define WEAK_RATES_ITS_ME

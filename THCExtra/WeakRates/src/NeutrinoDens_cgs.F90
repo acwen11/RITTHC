@@ -10,10 +10,11 @@ INTEGER FUNCTION NeutrinoDens_cgs(rho, temp, ye,&
     use ieee_arithmetic
 #endif
     use table3d_mod
-    use lk_interpolations
+    ! use lk_interpolations
     use units
 
     implicit none
+    !DECLARE_CCTK_FUNCTIONS
 
     CCTK_REAL, INTENT(IN)  :: rho, temp, ye
     CCTK_REAL, INTENT(OUT) :: n_nue, n_nua, n_nux, en_nue, en_nua, en_nux
@@ -33,6 +34,7 @@ INTEGER FUNCTION NeutrinoDens_cgs(rho, temp, ye,&
               eta_n, eta_p, eta_hat, eta_e, &
               eta_np, eta_pn
 
+    mass_fact = 930.17637269
     NeutrinoDens_cgs = 0
 
 #define WEAK_RATES_ITS_ME

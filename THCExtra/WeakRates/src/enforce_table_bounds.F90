@@ -9,40 +9,41 @@ INTEGER FUNCTION enforceTableBounds(rho, temp, ye)
 
     enforceTableBounds = 0
 
-    if(rho.lt.eos_rhomin) then
-       rho = eos_rhomin
-       if(use_rho_min_ext.eq.0) then
-          enforceTableBounds = -1
-       endif
-    endif
-    if(rho.gt.eos_rhomax) then
-       rho = eos_rhomax
-       if(use_rho_max_ext.eq.0) then
-          enforceTableBounds = -1
-       endif
-    endif
+    ! TODO: ACTUALLY CHECK!!!
+    ! if(rho.lt.eos_rhomin) then
+    !    rho = eos_rhomin
+    !    if(use_rho_min_ext.eq.0) then
+    !       enforceTableBounds = -1
+    !    endif
+    ! endif
+    ! if(rho.gt.eos_rhomax) then
+    !    rho = eos_rhomax
+    !    if(use_rho_max_ext.eq.0) then
+    !       enforceTableBounds = -1
+    !    endif
+    ! endif
 
-    if(temp.lt.eos_tempmin) then
-       temp = eos_tempmin
-       if(use_temp_min_ext.eq.0) then
-          enforceTableBounds = -1
-       endif
-    endif
-    if(temp.gt.eos_tempmax) then
-       temp = eos_tempmax
-       if(use_temp_max_ext.eq.0) then
-          enforceTableBounds = -1
-       endif
-    endif
+    ! if(temp.lt.eos_tempmin) then
+    !    temp = eos_tempmin
+    !    if(use_temp_min_ext.eq.0) then
+    !       enforceTableBounds = -1
+    !    endif
+    ! endif
+    ! if(temp.gt.eos_tempmax) then
+    !    temp = eos_tempmax
+    !    if(use_temp_max_ext.eq.0) then
+    !       enforceTableBounds = -1
+    !    endif
+    ! endif
 
-    if(ye.lt.eos_yemin) then
-       ye = eos_yemin
+    if(ye.lt.0.05) then
+       ye = 0.05
        if(use_ye_min_ext.eq.0) then
           enforceTableBounds = -1
        endif
     endif
-    if(ye.gt.eos_yemax) then
-       ye = eos_yemax
+    if(ye.gt.0.56) then
+       ye = 0.56
        if(use_ye_max_ext.eq.0) then
           enforceTableBounds = -1
        endif

@@ -59,6 +59,7 @@ INTEGER function weak_table_reader(myFilename)
     return
   endif
   !mass_fact = 9.223158894119980d+02
+  mass_fact = 930.17637269
 
   nrho = size(logrho,1)
   ntemp = size(logtemp,1)
