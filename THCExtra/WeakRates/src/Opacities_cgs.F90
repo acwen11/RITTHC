@@ -38,7 +38,9 @@ INTEGER FUNCTION Opacities_cgs(rho, temp, ye, &
     INTEGER :: Absorption_cgs, Scattering_cgs
     INTEGER :: err = 0
 
+    mass_fact = 930.17637269
     Opacities_cgs = 0
+    !DECLARE_CCTK_FUNCTIONS
 
     kappa_0_nue_abs = 0.0d0
     kappa_0_nua_abs = 0.0d0
@@ -151,6 +153,7 @@ INTEGER FUNCTION Absorption_cgs(rho, temp, ye,&
                  eta_n, eta_p, eta_hat, eta_e, &
                  eta_np, eta_pn
 
+    mass_fact = 930.17637269
     Absorption_cgs = 0
 
 #define WEAK_RATES_ITS_ME
