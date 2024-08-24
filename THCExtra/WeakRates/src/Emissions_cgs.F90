@@ -47,7 +47,9 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
               eta_n, eta_p, eta_hat, eta_e, &
               eta_np, eta_pn, enr_tilde_p, &
               enr_tilde_m
-  
+      
+    REAL*8 :: debug1, debug2
+
     mass_fact = 930.17637269
     Emissions_cgs = 0
 
@@ -108,6 +110,9 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
     !B8
     Rpair =  pair_const / (36.0d0 * block_factor_e * block_factor_a) *&
                 ((Cv-Ca)**2 + (Cv+Ca)**2)
+
+    debug1 = block_factor_e
+    debug2 = block_factor_a
 
     Rpair_nue = Rpair
     Rpair_nua = Rpair

@@ -7,7 +7,7 @@ CCTK_INT FUNCTION NeutrinoEmissionImpl(rho, temp, ye, &
                                    emissionRatesRloc_nue, emissionRatesRloc_nua, &
                                    emissionRatesRloc_nux, emissionRatesQloc_nue, &
                                    emissionRatesQloc_nua,emissionRatesQloc_nux)
-    ! use table3d_mod
+    use table3d_mod
     use units
 
     implicit none
