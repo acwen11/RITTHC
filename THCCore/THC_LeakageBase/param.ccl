@@ -1,8 +1,10 @@
 # Parameter definitions for thorn THC_LeakageBase
 
-SHARES: THC_Core
-USES BOOLEAN verbose
-USES REAL atmo_rho
+# SHARES: THC_Core
+# USES BOOLEAN verbose
+# USES REAL atmo_rho
+SHARES: IllinoisGRMHD
+USES REAL rho_b_atm_max
 
 SHARES: HydroBase
 USES KEYWORD evolution_method
@@ -10,6 +12,10 @@ USES STRING prolongation_type
 USES INT timelevels
 
 RESTRICTED:
+
+BOOLEAN verbose "More output" STEERABLE=ALWAYS
+{
+} "no"
 
 KEYWORD neu_abs_type "Method to be used to compute the neutrino absorption rates" STEERABLE=recover
 {

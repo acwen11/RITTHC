@@ -443,7 +443,7 @@ void THC_LK_InitOpticalDepthSimple(CCTK_ARGUMENTS) {
                 j, 0, cctk_lsh[1],
                 i, 0, cctk_lsh[0]) {
             int const ijk = CCTK_GFINDEX3D(cctkGH, i, j, k);
-            CCTK_REAL const tau = rho[ijk]/atmo_rho - 1.0;
+            CCTK_REAL const tau = rho[ijk]/rho_b_atm_max - 1.0;
             for(int v = 0; v < 6; ++v) {
                 optd_vec[v][ijk] = tau;
             }
