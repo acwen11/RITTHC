@@ -1,0 +1,6 @@
+#REQUIRES GSL 
+PROVIDES THC_UtilsLite
+{
+    SCRIPT
+    LANG
+}

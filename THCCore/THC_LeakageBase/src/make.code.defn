@@ -10,8 +10,7 @@ SRCS = thc_lk_apply.c \
        thc_lk_rates.c \
        thc_lk_select_bc.c \
        thc_lk_setsym.c \
-       thc_lk_update_optd.c \
-			 thc_sph_grid.c
+       thc_lk_update_optd.c
 
 # Subdirectories containing source files
 SUBDIRS =

@@ -183,11 +183,15 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
 #ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
     if (.not.ieee_is_finite(R_nue)) then
        write(*,*) "Emissions_cgs: NaN/Inf in R_nue", rho, temp, ye
+       write(*,*) "R_nue check: ", Rbeta_nue , Rpair_nue , Rplasm_nue , Rbrem
+       write(*,*) "Rpair blocking factors : ", debug1, debug2
        Emissions_cgs = -1
     endif
 
     if (.not.ieee_is_finite(R_nua)) then
        write(*,*) "Emissions_cgs: NaN/Inf in R_nua", rho, temp, ye
+       write(*,*) "R_nua check: ", Rbeta_nua , Rpair_nua , Rplasm_nua , Rbrem
+       write(*,*) "Rpair blocking factors : ", debug1, debug2
        Emissions_cgs = -1
     endif
 
