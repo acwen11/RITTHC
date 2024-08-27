@@ -83,3 +83,31 @@ PROVIDES FUNCTION NeutrinoDensity WITH NeutrinoDensityImpl LANGUAGE Fortran
 # Normalized average baryon mass
 CCTK_REAL FUNCTION AverageBaryonMass()
 PROVIDES FUNCTION AverageBaryonMass WITH AtomicMassImpl LANGUAGE Fortran
+
+# Aliased Funcs from WVU_EOS
+void FUNCTION WVU_EOS_THC_WeakRates_from_rho_Ye_T( CCTK_REAL IN rho,    \
+                                                                 CCTK_REAL IN Ye,     \
+                                                                 CCTK_REAL IN T,      \
+                                                                 CCTK_REAL OUT mu_e,  \
+                                                                 CCTK_REAL OUT mu_p,  \
+                                                                 CCTK_REAL OUT mu_n,  \
+                                                                 CCTK_REAL OUT X_n,   \
+                                                                 CCTK_REAL OUT X_p,   \
+                                                                 CCTK_REAL OUT X_h,   \
+                                                                 CCTK_REAL OUT Abar,   \
+                                                                 CCTK_REAL OUT Zbar)
+USES FUNCTION WVU_EOS_THC_WeakRates_from_rho_Ye_T 
+
+void FUNCTION WVU_EOS_share_nuc_eos( CCTK_INT OUT nrho,    \
+                                     CCTK_INT OUT ntemp,  \
+                                     CCTK_INT OUT nye,  \
+                                     CCTK_REAL OUT eos_rhomin,  \
+                                     CCTK_REAL OUT eos_rhomax,   \
+                                     CCTK_REAL OUT eos_tempmin,  \
+                                     CCTK_REAL OUT eos_tempmax,   \
+                                     CCTK_REAL OUT eos_yemin,  \
+                                     CCTK_REAL OUT eos_yemax,   \
+                                     CCTK_REAL OUT drho,   \
+                                     CCTK_REAL OUT dtemp,   \
+                                     CCTK_REAL OUT dye)
+USES FUNCTION WVU_EOS_share_nuc_eos

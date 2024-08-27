@@ -47,7 +47,6 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
               eta_np, eta_pn, enr_tilde_p, &
               enr_tilde_m
 
-    mass_fact = 930.17637269
     Emissions_cgs = 0
 
 #define WEAK_RATES_ITS_ME
@@ -70,15 +69,15 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
     block_factor_e = 1.0d0 + exp(eta_nue - FERMI5O4(eta_e))
     block_factor_a = 1.0d0 + exp(eta_nua - FERMI5O4(-eta_e))
 
-    #ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
-      if (.not.ieee_is_finite(block_factor_e)) then
-         block_factor_e = huge(1.0d0)
-      endif
+#ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
+    if (.not.ieee_is_finite(block_factor_e)) then
+       block_factor_e = huge(1.0d0)
+    endif
 
-      if (.not.ieee_is_finite(block_factor_a)) then
-         block_factor_a = huge(1.0d0)
-      endif
-    #endif
+    if (.not.ieee_is_finite(block_factor_a)) then
+       block_factor_a = huge(1.0d0)
+    endif
+#endif
 
     !neu electron capture rate
     Rbeta_nue = beta * eta_pn * temp**5 *  FERMI4(eta_e)/block_factor_e
@@ -107,19 +106,19 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
     block_factor_x = 1.0d0+exp(eta_nux-0.5d0 *&
                 ( FERMI4O3(eta_e) + FERMI4O3(-eta_e) ))
    
-   #ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
-      if (.not.ieee_is_finite(block_factor_e)) then
-         block_factor_e = huge(1.0d0)
-      endif
+#ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
+    if (.not.ieee_is_finite(block_factor_e)) then
+       block_factor_e = huge(1.0d0)
+    endif
 
-      if (.not.ieee_is_finite(block_factor_a)) then
-         block_factor_a = huge(1.0d0)
-      endif
+    if (.not.ieee_is_finite(block_factor_a)) then
+       block_factor_a = huge(1.0d0)
+    endif
 
-      if (.not.ieee_is_finite(block_factor_x)) then
-         block_factor_x = huge(1.0d0)
-      endif
-    #endif
+    if (.not.ieee_is_finite(block_factor_x)) then
+       block_factor_x = huge(1.0d0)
+    endif
+#endif
 
     !B8 electron-positron pair annihilation
     pair_const = ((sigma_0 * clight) / me_mev**2) * enr_m * enr_p
@@ -163,19 +162,19 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
     block_factor_x = 1.0d0 + &
                   exp(eta_nux -(1.0d0 + 0.5d0 * gamma**2/(1.0d0 + gamma)))
 
-   #ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
-      if (.not.ieee_is_finite(block_factor_e)) then
-         block_factor_e = huge(1.0d0)
-      endif
+#ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
+    if (.not.ieee_is_finite(block_factor_e)) then
+       block_factor_e = huge(1.0d0)
+    endif
 
-      if (.not.ieee_is_finite(block_factor_a)) then
-         block_factor_a = huge(1.0d0)
-      endif
+    if (.not.ieee_is_finite(block_factor_a)) then
+       block_factor_a = huge(1.0d0)
+    endif
 
-      if (.not.ieee_is_finite(block_factor_x)) then
-         block_factor_x = huge(1.0d0)
-      endif
-    #endif
+    if (.not.ieee_is_finite(block_factor_x)) then
+       block_factor_x = huge(1.0d0)
+    endif
+#endif
 
     gamma_const = pi**3 * sigma_0 * clight * temp**8 /&
                   (me_mev**2 * 3.0d0 * fsc * hc_mevcm**6)*&
@@ -220,15 +219,15 @@ INTEGER FUNCTION Emissions_cgs(rho, temp, ye,&
 #ifndef FORTRAN_DISABLE_IEEE_ARITHMETIC
     if (.not.ieee_is_finite(R_nue)) then
        write(*,*) "Emissions_cgs: NaN/Inf in R_nue", rho, temp, ye
-       write(*,*) "R_nue check: ", Rbeta_nue , Rpair_nue , Rplasm_nue , Rbrem
-       write(*,*) "Rpair blocking factors : ", debug1, debug2
+       ! write(*,*) "R_nue check: ", Rbeta_nue , Rpair_nue , Rplasm_nue , Rbrem
+       ! write(*,*) "Rpair blocking factors : ", debug1, debug2
        Emissions_cgs = -1
     endif
 
     if (.not.ieee_is_finite(R_nua)) then
        write(*,*) "Emissions_cgs: NaN/Inf in R_nua", rho, temp, ye
-       write(*,*) "R_nua check: ", Rbeta_nua , Rpair_nua , Rplasm_nua , Rbrem
-       write(*,*) "Rpair blocking factors : ", debug1, debug2
+       ! write(*,*) "R_nua check: ", Rbeta_nua , Rpair_nua , Rplasm_nua , Rbrem
+       ! write(*,*) "Rpair blocking factors : ", debug1, debug2
        Emissions_cgs = -1
     endif
 

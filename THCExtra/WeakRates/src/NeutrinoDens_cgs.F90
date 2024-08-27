@@ -34,7 +34,6 @@ INTEGER FUNCTION NeutrinoDens_cgs(rho, temp, ye,&
               eta_n, eta_p, eta_hat, eta_e, &
               eta_np, eta_pn
 
-    mass_fact = 930.17637269
     NeutrinoDens_cgs = 0
 
 #define WEAK_RATES_ITS_ME

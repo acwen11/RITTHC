@@ -8,7 +8,8 @@ SRCS =  Fermi.F77 \
 				Emissions_cgs.F90 \
         table3d_mod.F90 \
         enforce_table_bounds.F90 \
-				weakrates_impl.F90
+				weakrates_impl.F90 \
+				fill_tab3d_mod_from_WVUEOS.F90
         # lk_hdfOpenField.F90 \
         # Abar.F90 \
 				# weak_equilibrium_mod.F90 \

@@ -1,5 +1,9 @@
 # Schedule definitions for thorn WeakRates
 
+schedule fill_tab3d_mod_from_WVUEOS AT CCTK_BASEGRID AFTER EOS_OMNI_get_energy_shift
+{
+ LANG: Fortran
+} "Copy EOS table constants from WVUEOS"
 
 # schedule StartTableReader AT CCTK_STARTUP
 # {

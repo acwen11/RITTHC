@@ -47,10 +47,10 @@ CCTK_INT FUNCTION NeutrinoEmissionImpl(rho, temp, ye, &
 
     boundsErr = enforceTableBounds(rho_cgs,temp0,ye0)
 
-    ! if (boundsErr.eq.-1) then
-    !   NeutrinoEmissionImpl = -1
-    !   return
-    ! end if
+    if (boundsErr.eq.-1) then
+      NeutrinoEmissionImpl = -1
+      return
+    end if
 
     !the temperature is in MeV
     err = Emissions_cgs(rho_cgs, temp0, ye0,&
@@ -127,10 +127,10 @@ CCTK_INT FUNCTION NeutrinoOpacityImpl(rho, temp, ye, &
 
     boundsErr = enforceTableBounds(rho_cgs,temp0,ye0)
 
-    ! if (boundsErr.eq.-1) then
-    !   NeutrinoOpacityImpl = -1
-    !   return
-    ! end if
+    if (boundsErr.eq.-1) then
+      NeutrinoOpacityImpl = -1
+      return
+    end if
 
     err = Opacities_cgs(rho_cgs, temp0, ye0,&
                         kappa_0_nue_cgs, kappa_0_nua_cgs,&
@@ -198,9 +198,9 @@ CCTK_INT FUNCTION NeutrinoAbsorptionRateImpl(rho, temp, ye,&
 
     boundsErr = enforceTableBounds(rho_cgs,temp0,ye0)
 
-    ! if (boundsErr.eq.-1) then
-    !   NeutrinoAbsorptionRateImpl = -1
-    ! end if
+    if (boundsErr.eq.-1) then
+      NeutrinoAbsorptionRateImpl = -1
+    end if
 
     err = Absorption_cgs(rho_cgs, temp0, ye0,&
                         kappa_0_nue_cgs, kappa_0_nua_cgs,&
@@ -262,10 +262,10 @@ CCTK_INT FUNCTION NeutrinoDensityImpl(rho, temp, ye,&
 
     boundsErr = enforceTableBounds(rho_cgs,temp0,ye0)
 
-    ! if (boundsErr.eq.-1) then
-    !   NeutrinoDensityImpl = -1
-    !   return
-    ! end if
+    if (boundsErr.eq.-1) then
+      NeutrinoDensityImpl = -1
+      return
+    end if
 
     ! Call CGS backend
     ierr = NeutrinoDens_cgs(rho_cgs, temp0, ye0, n_nue, n_nua, n_nux, &
