@@ -286,94 +286,98 @@ CCTK_INT FUNCTION NeutrinoDensityImpl(rho, temp, ye,&
     return
 END FUNCTION NeutrinoDensityImpl
 
-! CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
-!         n_nue, n_nua, n_nux, en_nue, en_nua, en_nux, &
-!         temp_eq, ye_eq, &
-!         n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq)
-!     ! use table3d_mod
-!     use units
-!     use weak_equilibrium_mod
-! 
-!     IMPLICIT NONE
-! 
-!     DECLARE_CCTK_PARAMETERS
-! 
-!     CCTK_REAL, INTENT(IN)  :: rho, temp, ye
-!     CCTK_REAL, INTENT(IN)  :: n_nue, n_nua, n_nux, en_nue, en_nua, en_nux
-!     CCTK_REAL, INTENT(OUT) :: temp_eq, ye_eq
-!     CCTK_REAL, INTENT(OUT) :: n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq
-! 
-!     CCTK_REAL :: rho0, temp0, ye0, eps0
-!     CCTK_REAL :: mb, AtomicMassImpl, nb
-! 
-!     INTEGER :: enforceTableBounds
-!     INTEGER :: ierr, na, boundsErr
-! 
-!     CCTK_REAL, DIMENSION(4) :: y_in
-!     CCTK_REAL, DIMENSION(4) :: e_in
-!     CCTK_REAL, DIMENSION(4) :: y_eq
-!     CCTK_REAL, DIMENSION(4) :: e_eq
-! 
-!     ! Conversion to cgs units
-!     rho0  = rho*cactus2cgsRho
-!     temp0 = temp
-!     ye0   = ye
-! 
-!     ! Do not do anything outside of this range
-!     if ((rho0.lt.rho_min_cgs).or.(temp0.lt.temp_min_mev)) then
-!       n_nue_eq  = 0.
-!       n_nua_eq  = 0.
-!       n_nux_eq  = 0.
-!       en_nue_eq = 0.
-!       en_nua_eq = 0.
-!       en_nux_eq = 0.
-!       WeakEquilibriumImpl = 0
-!       return
-!     end if
-! 
-!     ! Enforce table bounds
-!     ! boundsErr = enforceTableBounds(rho0, temp0, ye0)
-! 
-!     ! if (boundsErr.eq.-1) then
-!     !   WeakEquilibriumImpl = -1
-!     !   return
-!     ! end if
-! 
-!     ! Compute baryon number density. These are both in Cactus units
-!     mb = AtomicMassImpl()
-!     nb = rho0/(cactus2cgsRho*mb)
-! 
-!     ! Compute fractions
-!     y_in(1) = ye0
-!     y_in(2) = n_nue/nb
-!     y_in(3) = n_nua/nb
-!     y_in(4) = 0.25*n_nux/nb
-! 
-!     ! Compute energy (note that tab3d_eps works in Cactus units)
-!     eps0 = tab3d_eps(rho0/cactus2cgsRho, temp, ye)*cactus2cgsEps
-!     e_in(1) = rho0*(clight*clight + eps0)
-!     e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
-!     e_in(3) = en_nua*(cgs2cactusLength**3/cgs2cactusEnergy)
-!     e_in(4) = en_nux*(cgs2cactusLength**3/cgs2cactusEnergy)
-! 
-!     ! Compute weak equilibrium
-!     call weak_equil_wnu(rho0, temp0, y_in, e_in, temp_eq, &
-!         y_eq, e_eq, na, ierr)
-!     ye_eq = y_eq(1)
-! 
-!     if (ierr.ne.0) then
-!         WeakEquilibriumImpl = -1
-!     else
-!         WeakEquilibriumImpl = 0
-!     end if
-! 
-!     ! Convert results to Cactus units
-!     n_nue_eq  = nb*y_eq(2)
-!     n_nua_eq  = nb*y_eq(3)
-!     n_nux_eq  = 4.0*nb*y_eq(4)
-!     en_nue_eq = e_eq(2)*(cgs2cactusEnergy/cgs2cactusLength**3)
-!     en_nua_eq = e_eq(3)*(cgs2cactusEnergy/cgs2cactusLength**3)
-!     en_nux_eq = e_eq(4)*(cgs2cactusEnergy/cgs2cactusLength**3)
-! 
-!     return
-! END FUNCTION WeakEquilibriumImpl
+CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
+        n_nue, n_nua, n_nux, en_nue, en_nua, en_nux, &
+        temp_eq, ye_eq, &
+        n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq)
+    ! use table3d_mod
+    use units
+    use weak_equilibrium_mod
+
+    IMPLICIT NONE
+
+    DECLARE_CCTK_PARAMETERS
+
+    CCTK_REAL, INTENT(IN)  :: rho, temp, ye
+    CCTK_REAL, INTENT(IN)  :: n_nue, n_nua, n_nux, en_nue, en_nua, en_nux
+    CCTK_REAL, INTENT(OUT) :: temp_eq, ye_eq
+    CCTK_REAL, INTENT(OUT) :: n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq
+
+    CCTK_REAL :: rho0, temp0, ye0, eps0
+    CCTK_REAL :: mb, AtomicMassImpl, nb
+    ! Dummy var for EOS call
+    CCTK_REAL :: press
+
+    INTEGER :: enforceTableBounds
+    INTEGER :: ierr, na, boundsErr
+
+    CCTK_REAL, DIMENSION(4) :: y_in
+    CCTK_REAL, DIMENSION(4) :: e_in
+    CCTK_REAL, DIMENSION(4) :: y_eq
+    CCTK_REAL, DIMENSION(4) :: e_eq
+
+    ! Conversion to cgs units
+    rho0  = rho*cactus2cgsRho
+    temp0 = temp
+    ye0   = ye
+
+    ! Do not do anything outside of this range
+    if ((rho0.lt.rho_min_cgs).or.(temp0.lt.temp_min_mev)) then
+      n_nue_eq  = 0.
+      n_nua_eq  = 0.
+      n_nux_eq  = 0.
+      en_nue_eq = 0.
+      en_nua_eq = 0.
+      en_nux_eq = 0.
+      WeakEquilibriumImpl = 0
+      return
+    end if
+
+    ! Enforce table bounds
+    ! boundsErr = enforceTableBounds(rho0, temp0, ye0)
+
+    ! if (boundsErr.eq.-1) then
+    !   WeakEquilibriumImpl = -1
+    !   return
+    ! end if
+
+    ! Compute baryon number density. These are both in Cactus units
+    mb = AtomicMassImpl()
+    nb = rho0/(cactus2cgsRho*mb)
+
+    ! Compute fractions
+    y_in(1) = ye0
+    y_in(2) = n_nue/nb
+    y_in(3) = n_nua/nb
+    y_in(4) = 0.25*n_nux/nb
+
+    ! Compute energy (note that tab3d_eps works in Cactus units)
+    ! eps0 = tab3d_eps(rho0/cactus2cgsRho, temp, ye)*cactus2cgsEps
+    call WVU_EOS_P_and_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, press, &
+      eps0)
+    e_in(1) = rho0*(clight*clight + eps0)
+    e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
+    e_in(3) = en_nua*(cgs2cactusLength**3/cgs2cactusEnergy)
+    e_in(4) = en_nux*(cgs2cactusLength**3/cgs2cactusEnergy)
+
+    ! Compute weak equilibrium
+    call weak_equil_wnu(rho0, temp0, y_in, e_in, temp_eq, &
+        y_eq, e_eq, na, ierr)
+    ye_eq = y_eq(1)
+
+    if (ierr.ne.0) then
+        WeakEquilibriumImpl = -1
+    else
+        WeakEquilibriumImpl = 0
+    end if
+
+    ! Convert results to Cactus units
+    n_nue_eq  = nb*y_eq(2)
+    n_nua_eq  = nb*y_eq(3)
+    n_nux_eq  = 4.0*nb*y_eq(4)
+    en_nue_eq = e_eq(2)*(cgs2cactusEnergy/cgs2cactusLength**3)
+    en_nua_eq = e_eq(3)*(cgs2cactusEnergy/cgs2cactusLength**3)
+    en_nux_eq = e_eq(4)*(cgs2cactusEnergy/cgs2cactusLength**3)
+
+    return
+END FUNCTION WeakEquilibriumImpl

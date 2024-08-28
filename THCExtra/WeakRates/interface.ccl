@@ -53,25 +53,25 @@ CCTK_INT FUNCTION NeutrinoDensity( \
 PROVIDES FUNCTION NeutrinoDensity WITH NeutrinoDensityImpl LANGUAGE Fortran
 
 # Weak equilibrium in optically thick conditions
-# CCTK_INT FUNCTION WeakEquilibrium( \
-#         CCTK_REAL IN rho, \
-#         CCTK_REAL IN temp, \
-#         CCTK_REAL IN ye, \
-#         CCTK_REAL IN num_nue, \
-#         CCTK_REAL IN num_nua, \
-#         CCTK_REAL IN num_nux, \
-#         CCTK_REAL IN ene_nue, \
-#         CCTK_REAL IN ene_nua, \
-#         CCTK_REAL IN ene_nux, \
-#         CCTK_REAL OUT temp_eq, \
-#         CCTK_REAL OUT ye_eq, \
-#         CCTK_REAL OUT num_nue_eq, \
-#         CCTK_REAL OUT num_nua_eq, \
-#         CCTK_REAL OUT num_nux_eq, \
-#         CCTK_REAL OUT ene_nue_eq, \
-#         CCTK_REAL OUT ene_nua_eq, \
-#         CCTK_REAL OUT ene_nux_eq)
-# PROVIDES FUNCTION WeakEquilibrium WITH WeakEquilibriumImpl LANGUAGE Fortran
+CCTK_INT FUNCTION WeakEquilibrium( \
+        CCTK_REAL IN rho, \
+        CCTK_REAL IN temp, \
+        CCTK_REAL IN ye, \
+        CCTK_REAL IN num_nue, \
+        CCTK_REAL IN num_nua, \
+        CCTK_REAL IN num_nux, \
+        CCTK_REAL IN ene_nue, \
+        CCTK_REAL IN ene_nua, \
+        CCTK_REAL IN ene_nux, \
+        CCTK_REAL OUT temp_eq, \
+        CCTK_REAL OUT ye_eq, \
+        CCTK_REAL OUT num_nue_eq, \
+        CCTK_REAL OUT num_nua_eq, \
+        CCTK_REAL OUT num_nux_eq, \
+        CCTK_REAL OUT ene_nue_eq, \
+        CCTK_REAL OUT ene_nua_eq, \
+        CCTK_REAL OUT ene_nux_eq)
+PROVIDES FUNCTION WeakEquilibrium WITH WeakEquilibriumImpl LANGUAGE Fortran
 # 
 # CCTK_INT FUNCTION NucleiAbar( \
 #         CCTK_REAL IN rho,\
@@ -97,6 +97,24 @@ void FUNCTION WVU_EOS_THC_WeakRates_from_rho_Ye_T( CCTK_REAL IN rho,    \
                                                                  CCTK_REAL OUT Abar,   \
                                                                  CCTK_REAL OUT Zbar)
 USES FUNCTION WVU_EOS_THC_WeakRates_from_rho_Ye_T 
+
+void FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( CCTK_REAL IN rho,    \
+                                                                 CCTK_REAL IN Ye,     \
+                                                                 CCTK_REAL IN T,      \
+                                                                 CCTK_REAL OUT mu_e,  \
+                                                                 CCTK_REAL OUT mu_p,  \
+                                                                 CCTK_REAL OUT mu_n,  \
+                                                                 CCTK_REAL OUT muhat,  \
+                                                                 CCTK_REAL OUT X_n,   \
+                                                                 CCTK_REAL OUT X_p)
+USES FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T
+
+void FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T( CCTK_REAL IN rho,    \
+																							 CCTK_REAL IN Ye,     \
+																							 CCTK_REAL IN T,      \
+																							 CCTK_REAL OUT P,  \
+																							 CCTK_REAL OUT eps)
+USES FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T
 
 void FUNCTION WVU_EOS_share_nuc_eos( CCTK_INT OUT nrho,    \
                                      CCTK_INT OUT ntemp,  \
