@@ -334,12 +334,12 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     end if
 
     ! Enforce table bounds
-    ! boundsErr = enforceTableBounds(rho0, temp0, ye0)
+    boundsErr = enforceTableBounds(rho0, temp0, ye0)
 
-    ! if (boundsErr.eq.-1) then
-    !   WeakEquilibriumImpl = -1
-    !   return
-    ! end if
+    if (boundsErr.eq.-1) then
+      WeakEquilibriumImpl = -1
+      return
+    end if
 
     ! Compute baryon number density. These are both in Cactus units
     mb = AtomicMassImpl()
@@ -355,6 +355,7 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     ! eps0 = tab3d_eps(rho0/cactus2cgsRho, temp, ye)*cactus2cgsEps
     call WVU_EOS_P_and_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, press, &
       eps0)
+    eps0 = eps0 * cactus2cgsEps
     e_in(1) = rho0*(clight*clight + eps0)
     e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
     e_in(3) = en_nua*(cgs2cactusLength**3/cgs2cactusEnergy)

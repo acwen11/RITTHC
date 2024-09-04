@@ -16,6 +16,7 @@ INTEGER function fill_tab3d_mod_from_WVUEOS()
   ! the internal weak table reader.
 
   use table3d_mod
+  use units
 
   implicit none
 
@@ -23,6 +24,9 @@ INTEGER function fill_tab3d_mod_from_WVUEOS()
                               eos_rhomin, eos_rhomax, eos_tempmin, eos_tempmax,&
                               eos_yemin, eos_yemax, dlrho, dltemp, dye)
 
+  ! WeakRates uses cgs for rho
+  eos_rhomin = eos_rhomin * cactus2cgsRho
+  eos_rhomax = eos_rhomax * cactus2cgsRho
   ! WeakRates uses log base 10
   eos_lrhomin = eos_rhomin * log10(exp(1.0))
   eos_lrhomax = eos_rhomax * log10(exp(1.0))
