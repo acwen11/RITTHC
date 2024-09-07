@@ -25,8 +25,10 @@ INTEGER function fill_tab3d_mod_from_WVUEOS()
                               eos_yemin, eos_yemax, dlrho, dltemp, dye)
 
   ! WeakRates uses cgs for rho
-  eos_rhomin = eos_rhomin * cactus2cgsRho
-  eos_rhomax = eos_rhomax * cactus2cgsRho
+  eos_rhomin = eos_rhomin * cactus2cgsRho * 1.0001 ! Hard coded tolerance
+  eos_rhomax = eos_rhomax * cactus2cgsRho * 0.9999
+  eos_tempmin = eos_tempmin * 1.0001
+  eos_tempmax = eos_tempmax * 0.9999
   ! WeakRates uses log base 10
   eos_lrhomin = eos_rhomin * log10(exp(1.0))
   eos_lrhomax = eos_rhomax * log10(exp(1.0))

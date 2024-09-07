@@ -213,11 +213,11 @@
         y_eq(1) = x1(2)
       else
         ! calculations did not work
-        write(6,*)'2D Newton-Raphson search did not work!'
-        write(6,*)'Point log10 density [g/cm^3]: ',log10(rho)
-        write(6,*)'Point temperature [MeV]: ',T
-        write(6,*)'Point yl [#/baryon]: ',yl
-        write(6,*)'Point log10 total energy [erg/cm^3]: ',log10(u)
+        ! write(6,*)'2D Newton-Raphson search did not work!'
+        ! write(6,*)'Point log10 density [g/cm^3]: ',log10(rho)
+        ! write(6,*)'Point temperature [MeV]: ',T
+        ! write(6,*)'Point yl [#/baryon]: ',yl
+        ! write(6,*)'Point log10 total energy [erg/cm^3]: ',log10(u)
 
 !.....as backup plan, we assign the initial values to all outputs.......
         T_eq = T        ![MeV]
@@ -269,7 +269,7 @@
       ! check that the energy is positive
       if (e_eq(1).lt.nb*mass_fact_cgs*clight*clight) then
         ierr = 1
-        write(6,*)'WeakEq: Negative Energy: ', e_eq(1)
+        !write(6,*)'WeakEq: Negative Energy: ', e_eq(1)
         T_eq = T
         y_eq = y_in
         e_eq = e_in
@@ -279,7 +279,7 @@
       ! check that Y_e is within the range
       if (y_eq(1).lt.0.or.y_eq(1).gt.1) then
         ierr = 1
-        write(6,*)'WeakEq: Wack Y_e: ', y_eq(1)
+        !write(6,*)'WeakEq: Wack Y_e: ', y_eq(1)
         T_eq = T
         y_eq = y_in
         e_eq = e_in

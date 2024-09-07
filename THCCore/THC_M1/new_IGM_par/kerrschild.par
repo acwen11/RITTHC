@@ -16,26 +16,27 @@ CarpetSlab
 CartGrid3d
 CoordBase
 CoordGauge
+Exact
 FakeRates
 GenericFD
 HydroBase
 HRSCCore
+ID_converter_ILGRMHD
+ID_TabEOS_HydroQuantities
+IllinoisGRMHD
 EOS_Omni
 # EOS_Thermal
 # EOS_Thermal_Idealgas
-ID_converter_ILGRMHD
-IllinoisGRMHD
 InitBase
 IOUtil
 LoopControl
 MoL
-Periodic
 Slab
-SpaceMask
 StaticConformal
 SymBase
 SystemTopology
 # THC_Core
+# THC_InitialData
 THC_M1
 # THC_Tracer
 Time
@@ -43,7 +44,7 @@ TmunuBase
 "
 
 Cactus::terminate			= "time"
-Cactus::cctk_final_time		= 10
+Cactus::cctk_final_time		= 20.0
 
 # =============================================================================
 # Grid
@@ -52,43 +53,43 @@ Grid::avoid_origin			= "no"
 Grid::domain			= "full"
 Grid::type			= "coordbase"
 
-CoordBase::xmin			= -2
-CoordBase::xmax			= 4
-CoordBase::ymin			= -2.5
-CoordBase::ymax			= 2.5
-CoordBase::zmin			= -0.1
-CoordBase::zmax			= 0.1
+CoordBase::xmin			= 0
+CoordBase::xmax			= 5
+CoordBase::ymin			= 0.0
+CoordBase::ymax			= 0.02
+CoordBase::zmin			= 0
+CoordBase::zmax			= 5
 
 CoordBase::spacing			= "numcells"
-CoordBase::ncells_x			= 120
-CoordBase::ncells_y			= 100
-CoordBase::ncells_z			= 1
+CoordBase::ncells_x			= 100
+CoordBase::ncells_y			= 1
+CoordBase::ncells_z			= 100
 
 CoordBase::boundary_size_x_lower		= 2
 CoordBase::boundary_size_x_upper		= 2
-CoordBase::boundary_shiftout_x_lower		= 1
+CoordBase::boundary_shiftout_x_lower		= 0
 CoordBase::boundary_shiftout_x_upper		= 1
 CoordBase::boundary_staggered_x_lower		= "yes"
 CoordBase::boundary_staggered_x_upper		= "yes"
 
-CoordBase::boundary_size_y_lower		= 2
-CoordBase::boundary_size_y_upper		= 2
+CoordBase::boundary_size_y_lower		= 3
+CoordBase::boundary_size_y_upper		= 3
 CoordBase::boundary_shiftout_y_lower		= 1
-CoordBase::boundary_shiftout_y_upper		= 1
-CoordBase::boundary_staggered_y_lower		= "yes"
-CoordBase::boundary_staggered_y_upper		= "yes"
+CoordBase::boundary_shiftout_y_upper		= 0
+CoordBase::boundary_staggered_y_lower		= "no"
+CoordBase::boundary_staggered_y_upper		= "no"
 
-CoordBase::boundary_size_z_lower		= 3
-CoordBase::boundary_size_z_upper		= 3
-CoordBase::boundary_shiftout_z_lower		= 0
+CoordBase::boundary_size_z_lower		= 2
+CoordBase::boundary_size_z_upper		= 2
+CoordBase::boundary_shiftout_z_lower		= 1
 CoordBase::boundary_shiftout_z_upper		= 1
+CoordBase::boundary_staggered_z_lower		= "yes"
+CoordBase::boundary_staggered_z_upper		= "yes"
 
 Driver::ghost_size			= 3
 Driver::ghost_size_x		= 3
 Driver::ghost_size_y		= 3
 Driver::ghost_size_z		= 3
-
-Periodic::periodic_z		= "yes"
 
 Carpet::domain_from_coordbase		= "yes"
 
@@ -105,50 +106,48 @@ Carpet::grid_coordinates_filename		= "grid.carpet"
 # =============================================================================
 # Initial data
 # =============================================================================
-HydroBase::initial_hydro		= "THC_M1"
-HydroBase::initial_Y_e		= "one"
-HydroBase::initial_temperature		= "zero"
-HydroBase::initial_entropy		= "zero"
+HydroBase::initial_hydro		= "ID_TabEOS_HydroQuantities"
+HydroBase::initial_Y_e		= "ID_TabEOS_HydroQuantities"
+HydroBase::initial_temperature		= "ID_TabEOS_HydroQuantities"
+HydroBase::initial_entropy		= "ID_TabEOS_HydroQuantities"
 HydroBase::initial_Avec		= "zero"
 HydroBase::initial_Bvec		= "zero"
 HydroBase::initial_Aphi		= "zero"
 HydroBase::timelevels		= 1
 
+# Parameters of thorn ID_TabEOS_HydroQuantities (implementing ID_tabEOS_HydroQuantities)
+ID_TabEOS_HydroQuantities::id_temperature_type = "constant"
+ID_TabEOS_HydroQuantities::id_entropy_type     = "from table"
+ID_TabEOS_HydroQuantities::Y_e_filename        = "/work2/09319/acw6923/frontera/EOS/Ye_beq_APRLDPex.txt"
+ID_TabEOS_HydroQuantities::id_type             = "Spherical Shock"
+ID_TabEOS_HydroQuantities::r_shock             = 10
+ID_TabEOS_HydroQuantities::rho_in              = 1e-13
+
 # =============================================================================
-# Templated hydrodynamics code except it's IGM
+# Templated hydrodynamics code
 # =============================================================================
 Time::timestep_method		= "given"
-Time::timestep			= 0.02
+Time::timestep			= 0.01
 
 TmunuBase::support_old_CalcTmunu_mechanism	= "no"
 
-# EOS_Thermal::evol_eos_name		= "IdealGas"
+# Parameters of thorn EOS_Omni (implementing EOS_Omni)
+EOS_Omni::do_energy_shift   = "yes"
+EOS_Omni::nuceos_read_table = "yes"
+EOS_Omni::nuceos_table_name = "/work2/09319/acw6923/frontera/EOS/APRLDP_3335_rho420_temp187_ye66_gitMf0fc21f_20240626_ext_norad_adj_mineps0.h5"
 
 ID_converter_ILGRMHD::pure_hydro_run = "yes"
 
-#---------EOS_Omni---------
-EOS_Omni::n_pieces        = 7
-EOS_Omni::hybrid_k0       = 1.685748749786487e+02
-EOS_Omni::hybrid_rho[0]   = 3.951437460082510e-11
-EOS_Omni::hybrid_rho[1]   = 6.126433097526977e-07
-EOS_Omni::hybrid_rho[2]   = 4.254975682734708e-06
-EOS_Omni::hybrid_rho[3]   = 2.367785968890901e-04
-EOS_Omni::hybrid_rho[4]   = 8.115303644041096e-04
-EOS_Omni::hybrid_rho[5]   = 1.619215953548485e-03
-EOS_Omni::hybrid_gamma[0] = 1.584250000000000e+00
-EOS_Omni::hybrid_gamma[1] = 1.287330000000000e+00
-EOS_Omni::hybrid_gamma[2] = 6.222299999999999e-01
-EOS_Omni::hybrid_gamma[3] = 1.356920000000000e+00
-EOS_Omni::hybrid_gamma[4] = 3.005000000000000e+00
-EOS_Omni::hybrid_gamma[5] = 2.988000000000000e+00
-EOS_Omni::hybrid_gamma[6] = 2.851000000000000e+00
-EOS_Omni::hybrid_gamma_th = 2.000000000000000e+00
-
 # Parameters of thorn IllinoisGRMHD (implementing IllinoisGRMHD)
-IllinoisGRMHD::igm_con2prim_routine           = "Noble2D"
-IllinoisGRMHD::igm_eos_type                   = "Hybrid"
-IllinoisGRMHD::igm_evolve_temperature         = "no"
-IllinoisGRMHD::igm_evolve_entropy             = "no"
+IllinoisGRMHD::igm_eos_table_ceiling_safety_factor = 1
+IllinoisGRMHD::igm_eos_table_floor_safety_factor   = 1
+
+IllinoisGRMHD::igm_PPM_reconstructed_variable = "pressure"
+IllinoisGRMHD::igm_con2prim_routine           = "Palenzuela1D"
+IllinoisGRMHD::igm_con2prim_backup_routine[0] = "Newman1D"
+IllinoisGRMHD::igm_eos_type                   = "Tabulated"
+IllinoisGRMHD::igm_evolve_temperature         = "yes"
+IllinoisGRMHD::igm_evolve_entropy             = "yes"
 IllinoisGRMHD::igm_T_max                      = 240
 IllinoisGRMHD::conserv_to_prims_debug         = 0
 IllinoisGRMHD::Psi6threshold                  = 60 # This value should only be reached far inside the horizon! Verify this!
@@ -157,24 +156,7 @@ IllinoisGRMHD::damp_lorenz                    = 0.217416512059369 #1.5/(dtfac*dx
 #0.279017857142857 #1.5/(dtfac*dx_coarsest)=1.5/(0.021875*245.76)
 IllinoisGRMHD::palenzuela_depsdT_threshold    = 1e-100 # Set to 1e100/1e-100 to only use entropy/energy equation
 IllinoisGRMHD::tau_atm_hybrid                 = 1e-20
-
-IllinoisGRMHD::neos                           = EOS_Omni::n_pieces
-IllinoisGRMHD::K_ppoly_tab0                   = EOS_Omni::hybrid_k0
-IllinoisGRMHD::rho_ppoly_tab_in[0]            = EOS_Omni::hybrid_rho[0]
-IllinoisGRMHD::rho_ppoly_tab_in[1]            = EOS_Omni::hybrid_rho[1]
-IllinoisGRMHD::rho_ppoly_tab_in[2]            = EOS_Omni::hybrid_rho[2]
-IllinoisGRMHD::rho_ppoly_tab_in[3]            = EOS_Omni::hybrid_rho[3]
-IllinoisGRMHD::rho_ppoly_tab_in[4]            = EOS_Omni::hybrid_rho[4]
-IllinoisGRMHD::rho_ppoly_tab_in[5]            = EOS_Omni::hybrid_rho[5]
-IllinoisGRMHD::Gamma_ppoly_tab_in[0]          = EOS_Omni::hybrid_gamma[0]
-IllinoisGRMHD::Gamma_ppoly_tab_in[1]          = EOS_Omni::hybrid_gamma[1]
-IllinoisGRMHD::Gamma_ppoly_tab_in[2]          = EOS_Omni::hybrid_gamma[2]
-IllinoisGRMHD::Gamma_ppoly_tab_in[3]          = EOS_Omni::hybrid_gamma[3]
-IllinoisGRMHD::Gamma_ppoly_tab_in[4]          = EOS_Omni::hybrid_gamma[4]
-IllinoisGRMHD::Gamma_ppoly_tab_in[5]          = EOS_Omni::hybrid_gamma[5]
-IllinoisGRMHD::Gamma_ppoly_tab_in[6]          = EOS_Omni::hybrid_gamma[6]
-IllinoisGRMHD::Gamma_th                       = EOS_Omni::hybrid_gamma_th
-
+# Graded Atmo params
 IllinoisGRMHD::atmo_falloff                   = "no"
 IllinoisGRMHD::atmo_falloff_T                 = "no"
 IllinoisGRMHD::rho_b_atm_max                  = 1e-13
@@ -183,7 +165,7 @@ IllinoisGRMHD::igm_T_atm                      = 1e-2
 IllinoisGRMHD::atmo_tol                       = 1e-3
 
 IllinoisGRMHD::update_HydroBase               = "yes"
-IllinoisGRMHD::update_Tmunu                   = "no"
+IllinoisGRMHD::update_Tmunu	      = "no"
 
 FakeRates::eta_nue			= 0.0
 FakeRates::eta_nua			= 0.0
@@ -191,32 +173,39 @@ FakeRates::eta_nux			= 0.0
 FakeRates::kappa_scat_nue		= 0.0
 FakeRates::kappa_scat_nua		= 0.0
 FakeRates::kappa_scat_nux		= 0.0
-FakeRates::kappa_abs_nue		= 1.0
-FakeRates::kappa_abs_nua		= 1.0
+FakeRates::kappa_abs_nue		= 0.0
+FakeRates::kappa_abs_nua		= 0.0
 
 THC_M1::backreact			= "no"
-THC_M1::closure			= "Minerbo"
+THC_M1::bc_type			= "flat"
+THC_M1::closure			= "minerbo"
 THC_M1::fiducial_velocity		= "lab"
-THC_M1::include_GR_sources		= "no"
+THC_M1::include_GR_sources		= "yes"
 THC_M1::minmod_theta		= 1.0
-THC_M1::opacity_corr_fac_max		= 1.0
-THC_M1::opacity_tau_trap		= -1.0
-THC_M1::source_limiter		= -1.0
-THC_M1::source_thick_limit		= -1.0
-THC_M1::source_epsabs		= 1e-10
 
-THC_M1::thc_m1_test			= "shadow"
+THC_M1::thc_m1_test			= "kerrschild"
+THC_M1::kerr_beam_position		= 3.25
+THC_M1::kerr_mask_radius		= 1.0
 
-THC_M1::verbose			= "yes"
+THC_M1::verbose			= "no"
 
 # =============================================================================
 # Spacetime evolution
 # =============================================================================
+ADMBase::initial_data		= "exact"
+ADMBase::initial_lapse		= "exact"
+ADMBase::initial_shift		= "exact"
+ADMBase::initial_dtlapse		= "exact"
+ADMBase::initial_dtshift		= "exact"
 ADMBase::evolution_method		= "static"
 ADMBase::lapse_evolution_method		= "static"
 ADMBase::shift_evolution_method		= "static"
 ADMBase::dtlapse_evolution_method		= "static"
 ADMBase::dtshift_evolution_method		= "static"
+
+Exact::exact_model			= "Kerr/Kerr-Schild"
+Exact::Kerr_KerrSchild__mass		= 1.0
+Exact::Kerr_KerrSchild__spin		= 0.0
 
 # =============================================================================
 # Output
@@ -235,32 +224,63 @@ CarpetIOScalar::outscalar_reductions		= "
 "
 CarpetIOScalar::outscalar_vars		= "
     THC_M1::rE[0]
+    THC_M1::rN[0]
 "
 
 CarpetIOASCII::out1d_vars		= "
+    ADMBase::metric
     HydroBase::rho
     THC_M1::chi[0]
-    THC_M1::opacs
     THC_M1::rN[0]
     THC_M1::rE[0]
     THC_M1::rFx[0]
     THC_M1::rFy[0]
+    THC_M1::rFz[0]
+    THC_M1::rPxx[0]
+    THC_M1::rPxy[0]
+    THC_M1::rPxz[0]
+    THC_M1::rPyy[0]
+    THC_M1::rPyz[0]
+    THC_M1::rPzz[0]
 "
 
 CarpetIOHDF5::out2d_vars		= "
+    ADMBase::lapse
+    ADMBase::shift
+    ADMBase::metric
     HydroBase::rho
+    THC_M1::thc_m1_mask
     THC_M1::chi[0]
     THC_M1::rN[0]
     THC_M1::rE[0]
     THC_M1::rFx[0]
     THC_M1::rFy[0]
+    THC_M1::rFz[0]
+    THC_M1::rPxx[0]
+    THC_M1::rPxy[0]
+    THC_M1::rPxz[0]
+    THC_M1::rPyy[0]
+    THC_M1::rPyz[0]
+    THC_M1::rPzz[0]
 "
 
-CarpetIOBasic::outinfo_every		= 5
-CarpetIOScalar::outscalar_every		= 5
-CarpetIOASCII::out0D_every		= 5
-CarpetIOASCII::out1D_every		= 25
-CarpetIOHDF5::out2d_every		= 25
-CarpetIOHDF5::out_every		= -1
+CarpetIOHDF5::out_vars		= "
+    THC_M1::rE[0]
+    THC_M1::rFx[0]
+    THC_M1::rFy[0]
+    THC_M1::rFz[0]
+"
+
+CarpetIOASCII::out1D_y		= "no"
+CarpetIOASCII::out1D_d		= "no"
+CarpetIOHDF5::out2d_xy		= "no"
+CarpetIOHDF5::out2d_yz		= "no"
+
+CarpetIOBasic::outinfo_every		= 1
+CarpetIOScalar::outscalar_every		= 10
+CarpetIOASCII::out0D_every		= 10
+CarpetIOASCII::out1D_every		= -1
+CarpetIOHDF5::out2d_every		= 10
+CarpetIOHDF5::out_every		= 20
 
 # vim: set ft=sh tabstop=20 noexpandtab :
