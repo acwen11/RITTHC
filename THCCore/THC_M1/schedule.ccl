@@ -216,10 +216,17 @@ if (backreact) {
     } "Apply BCs and synchronize hydro variables"
 
     # SCHEDULE GROUP HydroBase_Con2Prim IN THC_M1_WRAP AFTER HydroBase_Boundaries
-    SCHEDULE GROUP IllinoisGRMHD_conserv_to_prims IN THC_M1_WRAP AFTER HydroBase_Boundaries
+    SCHEDULE IllinoisGRMHD_conserv_to_prims IN THC_M1_WRAP AFTER HydroBase_Boundaries
     {
         LANG: C
     } "Computes the primitives from the conservatives"
+
+		schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in THC_M1_WRAP after IllinoisGRMHD_conserv_to_prims
+		{
+				# We must sync {P,rho_b,vx,vy,vz} here.
+				SYNC: grmhd_primitives_allbutBi
+				LANG: C
+		} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 }
 
 # -----------------------------------------------------------------------------

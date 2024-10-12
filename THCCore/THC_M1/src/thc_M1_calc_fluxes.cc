@@ -272,6 +272,18 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                         // become larger than c
                         cmax[GFINDEX1D(__k, ig, 0)] = clight;
                                                  // = std::min(clight, cM1);
+												// if (!isfinite(clight)) {
+												if (alp[ijk] < 0.1) {
+														// CCTK_VINFO("cmax not finite at (i, j, k) = %d, %d, %d", i, j, k);
+														// CCTK_VINFO("cmax not finite at (x, y, z) = %e, %e, %e", x[ijk], y[ijk], z[ijk]);
+														CCTK_VINFO("weird ADM vars at (i, j, k) = %d, %d, %d", i, j, k);
+														CCTK_VINFO("weird AMD vars at (x, y, z) = %e, %e, %e", x[ijk], y[ijk], z[ijk]);
+														CCTK_VINFO("__imin = %d, __imax = %d, __jmin = %d, __jmax = %d, __kmin = %d, __kmax = %d", THC_M1_NGHOST, lsh[0] - THC_M1_NGHOST, THC_M1_NGHOST, lsh[1] - THC_M1_NGHOST, THC_M1_NGHOST, lsh[2] - THC_M1_NGHOST);
+														CCTK_VINFO("dir = %d", dir);
+														CCTK_VINFO("clam0 = %e, clam1 = %e", clam[0], clam[1]);
+														CCTK_VINFO("alp = %e, guu = %e, beta_u = %e", alp[ijk], gamma_uu(dir,dir), beta_u(dir+1));
+														//assert(isfinite(cmax[GFINDEX1D(__k, ig, 0)]));
+												}
                     }
                 }
 
@@ -348,7 +360,18 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                                        && j <  cctk_lsh[1] - THC_M1_NGHOST
                                        && k >= THC_M1_NGHOST
                                        && k <  cctk_lsh[2] - THC_M1_NGHOST);
-                                assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
+                                //assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
+                                if (!isfinite(rhs[PINDEX1D(ig, iv)][ijk])) {
+																		CCTK_VINFO("RHS not finite at (i, j, k) = %d, %d, %d", i, j, k);
+																		CCTK_VINFO("RHS not finite at (x, y, z) = %e, %e, %e", x[ijk], y[ijk], z[ijk]);
+																		CCTK_VINFO("dir = %d", dir);
+																		CCTK_VINFO("group idx = %d, var idx = %d", ig, iv);
+																		CCTK_VINFO("new flux = %e", flux_num);
+																		CCTK_VINFO("flux_HO = %e, flux_LO = %e", flux_high, flux_low);
+																		CCTK_VINFO("flux LO Calc: fj = %e, fjp = %e, cc = %e, ccp = %e, uj = %e, ujp = %e", fj, fjp, cc, ccp, uj, ujp);
+																		CCTK_VINFO("Helper vars: kapa = %e, phi = %e, A = %e", kapa, phi, A);
+                                		assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
+																}
                             }
                         }
                     }

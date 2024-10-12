@@ -249,7 +249,7 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                 // Update Tmunu
                 CCTK_REAL const H2 = tensor::dot(g_uu, Hnew_d, Hnew_d);
 #if (THC_M1_SRC_METHOD == THC_M1_SRC_BOOST)
-                CCTK_REAL const xi = sqrt(H2)*(Jnew > rad_E_floor ? 1/Jnew : 0);
+                CCTK_REAL const xi = sqrt(H2)*(Jnew > rad_E_floor * (1 + floor_tol) ? 1/Jnew : 0);
                 chi[i4D] = closure_fun(xi);
 #else // this is really only important in the thick limit, so take chi = 1/3
                 chi[i4D] = 1.0/3.0;
@@ -359,6 +359,26 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
             }
 
             //
+            // Step 2.5 -- zero rhs in atmosphere
+						for (int ig = 0; ig < ngroups*nspecies; ++ig) {
+								int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
+								if (rE_rhs[i4D] < rad_E_floor * 0.1) {
+										rE_rhs[i4D]  = 0.0;
+										rFx_rhs[i4D] = 0.0;
+										rFy_rhs[i4D] = 0.0;
+										rFz_rhs[i4D] = 0.0;
+										rN_rhs[i4D]  = 0.0;
+
+										DrE[ig]  = 0.0;
+                    DrFx[ig] = 0.0;
+                    DrFy[ig] = 0.0;
+                    DrFz[ig] = 0.0;
+										DrN[ig]  = 0.0;
+										DDxp[ig] = 0.0;
+								}
+						}
+
+            //
             // Step 3 -- update fields
             for (int ig = 0; ig < ngroups*nspecies; ++ig) {
                 int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
@@ -373,6 +393,15 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
 
                 CCTK_REAL N =  rN_p[i4D] + dt*rN_rhs[i4D]  + theta*DrN[ig];
                 N = max(N, rad_N_floor);
+
+								CCTK_REAL E_rhstot = dt*rE_rhs[i4D]  + theta*DrE[ig];
+
+								if ((r[ijk] > (1.2*cctk_time) + 50) && (E_rhstot > 1e-17)) { // if E is growing far in the atmosphere before radiation can causally reach there...
+										CCTK_VINFO("Nonzero Erhs = %e in atmosphere!", E_rhstot);
+										CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
+										CCTK_VINFO("dt = %e, rE_rhs = %e, theta = %e, DrE = %e", dt, rE_rhs[i4D], theta, DrE[ig]);
+										CCTK_VINFO("alp = %e, volform = %e, eta = %e, abs = %e, scat = %e", alp[ijk], volform, eta_1[i4D], abs_1[i4D], scat_1[i4D]);
+								}
 
                 //
                 // Compute back reaction on the fluid
