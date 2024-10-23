@@ -13,6 +13,10 @@ SHARES: IllinoisGRMHD
 USES CCTK_STRING igm_eos_type
 USES REAL igm_T_atm
 USES REAL igm_Ye_atm
+USES BOOLEAN atmo_falloff
+USES REAL rho_b_atm_max
+USES REAL r_power
+USES REAL r_atmo_min
 
 SHARES: HydroBase
 USES INT hydro_excision
