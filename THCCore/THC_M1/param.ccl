@@ -111,7 +111,7 @@ REAL rad_E_floor "Radiation energy density floor" STEERABLE=ALWAYS
 REAL floor_tol "Radiation floor tolerance" STEERABLE=ALWAYS
 {
     0:* :: "Any non negative number"
-} 1.0e-3
+} 0.0
 
 REAL rad_eps "Impose F_a F^a < (1 - rad_E_eps) E2" STEERABLE=ALWAYS
 {
