@@ -628,10 +628,14 @@ void calc_rF_source(
 void apply_floor(
         tensor::symmetric2<CCTK_REAL, 4, 2> const & g_uu,
         CCTK_REAL * E,
+        const CCTK_REAL tol,
         tensor::generic<CCTK_REAL, 4, 1> * F_d) {
     DECLARE_CCTK_PARAMETERS;
 
-    *E = max(rad_E_floor, *E);
+    // *E = max(rad_E_floor, *E);
+    if (*E < rad_E_floor * (1 + tol)) {
+			*E = rad_E_floor;
+		}
 
     CCTK_REAL const F2 = tensor::dot(g_uu, *F_d, *F_d);
     CCTK_REAL const lim = (*E)*(*E)*(1 - rad_eps);

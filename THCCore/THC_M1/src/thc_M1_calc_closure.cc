@@ -150,7 +150,7 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
 
                 rJ[i4D] = calc_J_from_rT(rT_dd, u_u);
                 calc_H_from_rT(rT_dd, u_u, proj_ud, &H_d);
-                apply_floor(g_uu, &rJ[i4D], &H_d);
+                apply_floor(g_uu, &rJ[i4D], floor_tol, &H_d);
 
                 unpack_H_d(H_d, &rHt[i4D], &rHx[i4D], &rHy[i4D], &rHz[i4D]);
                 assert(isfinite(rHt[i4D]));

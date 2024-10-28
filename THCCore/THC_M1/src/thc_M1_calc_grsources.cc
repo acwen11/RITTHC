@@ -116,6 +116,12 @@ extern "C" void THC_M1_CalcGRSources(CCTK_ARGUMENTS) {
                 rE_rhs[i4D] += alp[ijk]*tensor::dot(P_uu, K_dd) -
                     tensor::dot(g_uu, F_d, dalp_d);
 
+								const CCTK_REAL grsrc = alp[ijk]*tensor::dot(P_uu, K_dd) - tensor::dot(g_uu, F_d, dalp_d);
+								if ((r[ijk] > (1.2*cctk_time) + 50) && (grsrc > rad_E_floor * floor_tol)) { // if E is growing far in the atmosphere before radiation can causally reach there...
+										CCTK_VINFO("Nonzero gr src = %e in atmosphere!", grsrc);
+										CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
+										CCTK_VINFO("alp = %e; PK = %e; F^i d_i alp = %e;", alp[ijk], tensor::dot(P_uu, K_dd), tensor::dot(g_uu, F_d, dalp_d));
+								}
                 // Compute the radiation flux sources
                 for (int a = 0; a < 3; ++a) {
                     *rF_rhs(a) -= rE[i4D]*dalp_d(a);

@@ -216,7 +216,7 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                         rFy_p[i4D] + dt*rFy_rhs[i4D],
                         rFz_p[i4D] + dt*rFz_rhs[i4D],
                         &Fstar_d);
-                apply_floor(g_uu, &Estar, &Fstar_d);
+                apply_floor(g_uu, &Estar, floor_tol, &Fstar_d);
                 CCTK_REAL Nstar = max(rN_p[i4D] + dt*rN_rhs[i4D], rad_N_floor);
                 CCTK_REAL Enew;
 
@@ -276,7 +276,7 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                 // Boost back to the lab frame
                 Enew = calc_J_from_rT(rT_dd, n_u);
                 calc_H_from_rT(rT_dd, n_u, gamma_ud, &Fnew_d);
-                apply_floor(g_uu, &Enew, &Fnew_d);
+                apply_floor(g_uu, &Enew, floor_tol, &Fnew_d);
 #if (THC_M1_SRC_METHOD == THC_M1_SRC_IMPL)
                 //
                 // Compute interaction with matter
@@ -286,7 +286,7 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                         v_d, v_u, proj_ud, fidu_w_lorentz[ijk], Estar, Fstar_d,
                         Estar, Fstar_d, volform*eta_1[i4D],
                         abs_1[i4D], scat_1[i4D], &chi[i4D], &Enew, &Fnew_d);
-                apply_floor(g_uu, &Enew, &Fnew_d);
+                apply_floor(g_uu, &Enew, floor_tol, &Fnew_d);
 
                 //
                 // Update closure
@@ -368,33 +368,42 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
 
             //
             // Step 2.5 -- zero rhs in atmosphere
-            CCTK_REAL xrho    = rho_b[ijk];
-						const CCTK_REAL r_atmo     = std::max(r_atmo_min, r[ijk]);
-						const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
-						const CCTK_REAL rho_atm    = std::max(rho_b_atm_max*std::pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
+            // CCTK_REAL xrho    = rho_b[ijk];
+						// const CCTK_REAL r_atmo     = std::max(r_atmo_min, r[ijk]);
+						// const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
+						// const CCTK_REAL rho_atm    = std::max(rho_b_atm_max*std::pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
 
-						for (int ig = 0; ig < ngroups*nspecies; ++ig) {
-								int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
-								if ((std::abs(dt*rE_rhs[i4D]) < rad_E_floor * floor_tol) && (xrho <= rho_atm * (1 + floor_tol))) {
-										rE_rhs[i4D]  = 0.0;
-										rFx_rhs[i4D] = 0.0;
-										rFy_rhs[i4D] = 0.0;
-										rFz_rhs[i4D] = 0.0;
-										rN_rhs[i4D]  = 0.0;
+						// for (int ig = 0; ig < ngroups*nspecies; ++ig) {
+						// 		int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
+						// 		if ((std::abs(dt*rE_rhs[i4D]) < rad_E_floor * floor_tol) && (xrho <= rho_atm * (1 + floor_tol))) {
+						// 				rE_rhs[i4D]  = 0.0;
+						// 				rFx_rhs[i4D] = 0.0;
+						// 				rFy_rhs[i4D] = 0.0;
+						// 				rFz_rhs[i4D] = 0.0;
+						// 				rN_rhs[i4D]  = 0.0;
 
-										DrE[ig]  = 0.0;
-                    DrFx[ig] = 0.0;
-                    DrFy[ig] = 0.0;
-                    DrFz[ig] = 0.0;
-										DrN[ig]  = 0.0;
-										DDxp[ig] = 0.0;
-								}
-						}
+						// 				DrE[ig]  = 0.0;
+            //         DrFx[ig] = 0.0;
+            //         DrFy[ig] = 0.0;
+            //         DrFz[ig] = 0.0;
+						// 				DrN[ig]  = 0.0;
+						// 				DDxp[ig] = 0.0;
+						// 		}
+						// }
 
             //
             // Step 3 -- update fields
             for (int ig = 0; ig < ngroups*nspecies; ++ig) {
                 int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
+
+								CCTK_REAL E_rhstot = dt*rE_rhs[i4D]  + theta*DrE[ig];
+								if ((r[ijk] > (1.2*cctk_time) + 50) && (E_rhstot > 1e-18)) { // if E is growing far in the atmosphere before radiation can causally reach there...
+										CCTK_VINFO("Nonzero Erhs = %e in atmosphere!", E_rhstot);
+										CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
+										CCTK_VINFO("E_p = %e", rE_p[i4D]);
+										CCTK_VINFO("dt = %e, rE_rhs = %e, theta = %e, DrE = %e", dt, rE_rhs[i4D], theta, DrE[ig]);
+										CCTK_VINFO("alp = %e, volform = %e, eta = %e, abs = %e, scat = %e", alp[ijk], volform, eta_1[i4D], abs_1[i4D], scat_1[i4D]);
+								}
 
                 //
                 // Update radiation quantities
@@ -402,19 +411,15 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                 F_d(1)      = rFx_p[i4D] + dt*rFx_rhs[i4D] + theta*DrFx[ig];
                 F_d(2)      = rFy_p[i4D] + dt*rFy_rhs[i4D] + theta*DrFy[ig];
                 F_d(3)      = rFz_p[i4D] + dt*rFz_rhs[i4D] + theta*DrFz[ig];
-                apply_floor(g_uu, &E, &F_d);
+                apply_floor(g_uu, &E, floor_tol, &F_d);
 
                 CCTK_REAL N =  rN_p[i4D] + dt*rN_rhs[i4D]  + theta*DrN[ig];
                 N = max(N, rad_N_floor);
 
-								CCTK_REAL E_rhstot = dt*rE_rhs[i4D]  + theta*DrE[ig];
 
-								// if ((r[ijk] > (1.2*cctk_time) + 50) && (E_rhstot > 1e-17)) { // if E is growing far in the atmosphere before radiation can causally reach there...
-								// 		CCTK_VINFO("Nonzero Erhs = %e in atmosphere!", E_rhstot);
-								// 		CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
-								// 		CCTK_VINFO("dt = %e, rE_rhs = %e, theta = %e, DrE = %e", dt, rE_rhs[i4D], theta, DrE[ig]);
-								// 		CCTK_VINFO("alp = %e, volform = %e, eta = %e, abs = %e, scat = %e", alp[ijk], volform, eta_1[i4D], abs_1[i4D], scat_1[i4D]);
-								// }
+								if ((r[ijk] > (1.2*cctk_time) + 50) && (E_rhstot > 1e-18)) { // if E is growing far in the atmosphere before radiation can causally reach there...
+										CCTK_VINFO("floored E = %e", E);
+								}
 
                 //
                 // Compute back reaction on the fluid
