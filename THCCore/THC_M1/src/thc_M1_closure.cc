@@ -332,7 +332,7 @@ CCTK_REAL flux_factor(
         CCTK_REAL const J,
         tensor::generic<CCTK_REAL, 4, 1> const & H_d) {
     DECLARE_CCTK_PARAMETERS;
-    CCTK_REAL xi = (J > rad_E_floor * (1 + floor_tol) ? tensor::dot(g_uu, H_d, H_d)/SQ(J) : 0);
+    CCTK_REAL xi = (J > rad_E_floor ? tensor::dot(g_uu, H_d, H_d)/SQ(J) : 0);
     return max(0.0, min(xi, 1.0));
 }
 
@@ -506,7 +506,7 @@ void assemble_fnu(
         tensor::generic<CCTK_REAL, 4, 1> * fnu_u) {
     DECLARE_CCTK_PARAMETERS;
     for (int a = 0; a < 4; ++a) {
-        fnu_u->at(a) = u_u(a) + (J > rad_E_floor * (1 + floor_tol) ? H_u(a)/J : 0);
+        fnu_u->at(a) = u_u(a) + (J > rad_E_floor ? H_u(a)/J : 0);
     }
 }
 
@@ -517,7 +517,7 @@ CCTK_REAL compute_Gamma(
         CCTK_REAL const E,
         tensor::generic<CCTK_REAL, 4, 1> const & F_d) {
     DECLARE_CCTK_PARAMETERS;
-    if (E > rad_E_floor * (1 + floor_tol) && J > rad_E_floor * (1 + floor_tol)) {
+    if (E > rad_E_floor && J > rad_E_floor) {
         CCTK_REAL f_dot_v = min(tensor::dot(F_d, v_u)/E, 1 - rad_eps);
         return W*(E/J)*(1 - f_dot_v);
     }
@@ -628,12 +628,11 @@ void calc_rF_source(
 void apply_floor(
         tensor::symmetric2<CCTK_REAL, 4, 2> const & g_uu,
         CCTK_REAL * E,
-        const CCTK_REAL tol,
         tensor::generic<CCTK_REAL, 4, 1> * F_d) {
     DECLARE_CCTK_PARAMETERS;
 
     // *E = max(rad_E_floor, *E);
-    if (*E < rad_E_floor * (1 + tol)) {
+    if (*E < rad_E_floor * (1 + floor_tol)) {
 			*E = rad_E_floor;
 		}
 

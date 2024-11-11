@@ -40,4 +40,6 @@ extern "C" void THC_M1_Reset(CCTK_ARGUMENTS) {
     std::memset(rFy, 0, siz);
     std::memset(rFz, 0, siz);
     std::memset(thc_m1_mask, 0, isiz);
+
+		*max_rhserror = 0;
 }

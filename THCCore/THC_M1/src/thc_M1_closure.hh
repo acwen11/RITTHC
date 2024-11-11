@@ -237,7 +237,6 @@ void calc_rF_source(
 void apply_floor(
         tensor::symmetric2<CCTK_REAL, 4, 2> const & g_uu,
         CCTK_REAL * E,
-        const CCTK_REAL tol,
         tensor::generic<CCTK_REAL, 4, 1> * F_d);
 
 } // namespace m1

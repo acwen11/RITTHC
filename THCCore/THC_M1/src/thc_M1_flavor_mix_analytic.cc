@@ -185,7 +185,7 @@ extern "C" void THC_M1_FlavorMixAnalytic(CCTK_ARGUMENTS) {
                 int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
                 pack_F_d(betax[ijk], betay[ijk], betaz[ijk],
                          rFx[i4D], rFy[i4D], rFz[i4D], &F_d);
-                apply_floor(g_uu, &rE[i4D], floor_tol, &F_d);
+                apply_floor(g_uu, &rE[i4D], &F_d);
                 unpack_F_d(F_d, &rFx[i4D], &rFy[i4D], &rFz[i4D]);
             }
         } UTILS_ENDLOOP3(thc_m1_flavor_mix);

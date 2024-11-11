@@ -239,8 +239,8 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                 if (ig == 2) {
                     eta_0[i4D] = corr_fac*eta_0_loc[ig];
                     eta_1[i4D] = corr_fac*eta_1_loc[ig];
-                    abs_0[i4D] = (nudens_0 > rad_N_floor * (1 + floor_tol) ? eta_0[i4D]/nudens_0 : 0);
-                    abs_1[i4D] = (nudens_1 > rad_E_floor * (1 + floor_tol) ? eta_1[i4D]/nudens_1 : 0);
+                    abs_0[i4D] = (nudens_0 > rad_N_floor ? eta_0[i4D]/nudens_0 : 0);
+                    abs_1[i4D] = (nudens_1 > rad_E_floor ? eta_1[i4D]/nudens_1 : 0);
                 }
                 else {
                     abs_0[i4D] = corr_fac*abs_0_loc[ig];

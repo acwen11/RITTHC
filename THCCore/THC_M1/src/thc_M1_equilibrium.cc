@@ -122,7 +122,7 @@ extern "C" void THC_M1_SetToEquilibrium(CCTK_ARGUMENTS) {
                 }
                 rE[i4D] = calc_J_from_rT(T_dd, n_u);
                 calc_H_from_rT(T_dd, n_u, gamma_ud, &F_d);
-                apply_floor(g_uu, &rE[i4D], floor_tol, &F_d);
+                apply_floor(g_uu, &rE[i4D], &F_d);
                 unpack_F_d(F_d, &rFx[i4D], &rFy[i4D], &rFz[i4D]);
                 calc_K_from_rT(T_dd, gamma_ud, &P_dd);
                 unpack_P_dd(P_dd, &rPxx[i4D], &rPxy[i4D], &rPxz[i4D],
