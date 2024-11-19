@@ -232,15 +232,13 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                         flux[GFINDEX1D(__k, ig, 4)] =
                             calc_E_flux(alp[ijk], beta_u, rE[i4D], F_u, dir+1);
 
-												// CCTK_VINFO("At (i,j,k) = (%d, %d, %d), (x,y,z) = (%e, %e, %e); Fx = %e; Fy = %e; Fz = %e", i, j, k, x[ijk], y[ijk], z[ijk], F_u(1), F_u(2), F_u(3));
-												// CCTK_VINFO("At (i,j,k) = (%d, %d, %d), (x,y,z) = (%e, %e, %e); alp = %e; beta = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk], alp[ijk], betax[ijk], betay[ijk], betaz[ijk]);
-												// if ((r[ijk] > (1.2*cctk_time) + 50) && (CCTK_DELTA_TIME * flux[GFINDEX1D(__k, ig, 4)] > rad_E_floor * floor_tol)) { // if E is growing far in the atmosphere before radiation can causally reach there...
-												// 		CCTK_VINFO("High Econs flux = %e in atmosphere!", flux[GFINDEX1D(__k, ig, 4)]);
-												// 		CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
-												// 		CCTK_VINFO("dir = %d", dir);
-												// 		CCTK_VINFO("alp = %e; rE = %e; beta = (%e, %e, %e)", alp[ijk], rE[i4D], betax[ijk], betay[ijk], betaz[ijk]);
-												// 		CCTK_VINFO("Fx = %e; Fy = %e; Fz = %e", F_u(1), F_u(2), F_u(3));
-												// }
+												//if ((r[ijk] > (1.2*cctk_time) + 50) && (CCTK_DELTA_TIME * flux[GFINDEX1D(__k, ig, 4)] > rad_E_floor * floor_tol)) { // if E is growing far in the atmosphere before radiation can causally reach there...
+												//		CCTK_VINFO("High Econs flux = %e in atmosphere!", flux[GFINDEX1D(__k, ig, 4)]);
+												//		CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
+												//		CCTK_VINFO("dir = %d", dir);
+												//		CCTK_VINFO("alp = %e; rE = %e; beta = (%e, %e, %e)", alp[ijk], rE[i4D], betax[ijk], betay[ijk], betaz[ijk]);
+												//		CCTK_VINFO("Fx = %e; Fy = %e; Fz = %e", F_u(1), F_u(2), F_u(3));
+												//}
 
                         assert(isfinite(flux[GFINDEX1D(__k, ig, 0)]));
                         assert(isfinite(flux[GFINDEX1D(__k, ig, 1)]));
@@ -282,6 +280,20 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                         // become larger than c
                         cmax[GFINDEX1D(__k, ig, 0)] = clight;
                                                  // = std::min(clight, cM1);
+                                                 //
+												bool at_physbd_x = ((cctk_lbnd[0] + __k == 23713)&&(dir==0));
+												bool at_physbd_y = ((cctk_lbnd[1] + __k == 23713)&&(dir==1));
+												bool at_physbd_z = ((cctk_lbnd[2] + __k == 23713)&&(dir==2));
+												bool at_lev = cctk_levfac[0] == 1<<8;
+												//if (((ig==0)&&(at_physbd_x || at_physbd_y || at_physbd_z))&&(at_lev)) {
+												if ((ig==0)&&(at_physbd_x || at_physbd_y || at_physbd_z)) {
+													CCTK_VINFO("WTF IS HAPPENING AT REF BDS");
+													CCTK_VINFO("At (i,j,k) = (%d, %d, %d), (x,y,z) = (%e, %e, %e); Fx flux = %e; Fy flux = %e; Fz flux = %e, E flux = %e", 
+														i, j, k, x[ijk], y[ijk], z[ijk], flux[GFINDEX1D(__k, ig, 1)],flux[GFINDEX1D(__k, ig, 2)],flux[GFINDEX1D(__k, ig, 3)],flux[GFINDEX1D(__k, ig, 4)]);
+													CCTK_VINFO("alp = %e; beta = (%e, %e, %e), clight = %e", alp[ijk], betax[ijk], betay[ijk], betaz[ijk], clight);
+													CCTK_VINFO("P^i_k = (%e, %e, %e)", P_ud(dir,0),P_ud(dir,1),P_ud(dir,2));
+												}
+
 												// if (!isfinite(clight)) {
 												// if (alp[ijk] < 0.1) {
 												// 		// CCTK_VINFO("cmax not finite at (i, j, k) = %d, %d, %d", i, j, k);
