@@ -36,7 +36,7 @@ ActiveThorns = "
     PizzaNumUtils
     PizzaTOV
     ReflectionSymmetry
-    Refluxing
+    # Refluxing
     Slab
     SpaceMask
     SphericalSurface
@@ -46,13 +46,13 @@ ActiveThorns = "
     SystemTopology
     THC_Core
     THC_LeakageBase
-    THC_Refluxing
+    #THC_Refluxing
     THC_Tracer
     Time
     TimerReport
     TmunuBase
     WeakRates
-    WatchDog
+    # WatchDog
 "
 
 Cactus::terminate			= "iteration"
@@ -241,7 +241,7 @@ THC_LeakageBase::nphi		= 32
 THC_LeakageBase::store_free_rates		= "yes"
 THC_LeakageBase::store_neu_luminosity		= "yes"
 
-THC_Refluxing::nvars		= 6
+# THC_Refluxing::nvars		= 6
 
 WeakRates::table_filename                                   = "@HOME@/Data/EOS/LS220/LS_220_weak_27-Sep-2014.h5"
 WeakRates::use_rho_max_ext		= "yes"
