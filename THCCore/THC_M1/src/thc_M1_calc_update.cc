@@ -427,21 +427,25 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                 //
                 // Compute back reaction on the fluid
                 // NOTE: fluid backreaction is only needed at the last substep
-                // if (backreact && 0 == *TimeIntegratorStage) {
-                //     assert (ngroups == 1);
-                //     assert (nspecies == 3);
+                if (backreact && 0 == *TimeIntegratorStage) {
+                    assert (ngroups == 1);
+                    assert (nspecies == 3);
 
-                //     mhd_st_x[ijk]  -= theta*DrFx[ig];
-                //     mhd_st_y[ijk]  -= theta*DrFy[ig];
-                //     mhd_st_z[ijk]  -= theta*DrFz[ig];
-                //     tau[ijk]    -= theta*DrE[ig];
-                //     Ye_star[ijk] += theta*DDxp[ig];
-                //     // densxn[ijk] -= theta*DDxp[ig];  // Not needed in IGM
+                    mhd_st_x[ijk]  -= theta*DrFx[ig];
+                    mhd_st_y[ijk]  -= theta*DrFy[ig];
+                    mhd_st_z[ijk]  -= theta*DrFz[ig];
+                    tau[ijk]    -= theta*DrE[ig];
+                    Ye_star[ijk] += theta*DDxp[ig];
+                    // densxn[ijk] -= theta*DDxp[ig];  // Not needed in IGM
 
-                //     netabs[ijk]  += theta*DDxp[ig];
-                //     netheat[ijk] -= theta*DrE[ig];
-                // }
+                    netabs[ijk]  += theta*DDxp[ig];
+                    netheat[ijk] -= theta*DrE[ig];
+                }
 
+								// Set M1 atmo at final stage 
+                if (0 == *TimeIntegratorStage) {
+                	atmo_reset(g_uu, &E, &F_d);
+								}
                 //
                 // Save updated results into grid functions
                 rE[i4D]  = E;

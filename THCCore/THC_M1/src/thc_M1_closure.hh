@@ -239,6 +239,12 @@ void apply_floor(
         CCTK_REAL * E,
         tensor::generic<CCTK_REAL, 4, 1> * F_d);
 
+// More extreme floor reset (E < rad_E_floor * (1 + tol); F_a = 0)
+void atmo_reset(
+        tensor::symmetric2<CCTK_REAL, 4, 2> const & g_uu,
+        CCTK_REAL * E,
+        tensor::generic<CCTK_REAL, 4, 1> * F_d);
+
 } // namespace m1
 } // namespace thc
 

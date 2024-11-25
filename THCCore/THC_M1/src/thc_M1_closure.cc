@@ -631,13 +631,13 @@ void apply_floor(
         tensor::generic<CCTK_REAL, 4, 1> * F_d) {
     DECLARE_CCTK_PARAMETERS;
 
-    // *E = max(rad_E_floor, *E);
-    if (*E < rad_E_floor * (1 + floor_tol)) {
-			*E = rad_E_floor;
-      // for (int a = 0; a < 4; ++a) {
-      //     F_d->at(a) = 0.0;
-      // }
-		}
+    *E = max(rad_E_floor, *E);
+    // if (*E < rad_E_floor * (1 + floor_tol)) {
+		// 	*E = rad_E_floor;
+    //   // for (int a = 0; a < 4; ++a) {
+    //   //     F_d->at(a) = 0.0;
+    //   // }
+		// }
 
     CCTK_REAL const F2 = tensor::dot(g_uu, *F_d, *F_d);
     CCTK_REAL const lim = (*E)*(*E)*(1 - rad_eps);
@@ -647,6 +647,20 @@ void apply_floor(
             F_d->at(a) *= fac;
         }
     }
+}
+
+void atmo_reset(
+        tensor::symmetric2<CCTK_REAL, 4, 2> const & g_uu,
+        CCTK_REAL * E,
+        tensor::generic<CCTK_REAL, 4, 1> * F_d) {
+    DECLARE_CCTK_PARAMETERS;
+
+    if (*E < rad_E_floor * (1 + floor_tol)) {
+			*E = rad_E_floor;
+      for (int a = 0; a < 4; ++a) {
+          F_d->at(a) = 0.0;
+      }
+		}
 }
 
 } // namespace m1
