@@ -22,24 +22,24 @@ INTEGER function weak_table_reader(myFilename)
   write(6,*) "Reading table with weak interaction rates: ", myFilename
 
   !DENSITY
-  myFieldName = "density"
+  myFieldName = "logrho"
   error = lk_hdfOpenField(myFilename,myFieldName,logrho)
   if (error.ne.0) then
     write(6,*) "WeakRates :: problem reading the table, rho"
     weak_table_reader = -1
     return
   endif
-  logrho = log10(logrho)
+  !logrho = log10(logrho)
 
   !TEMPERATURE
-  myFieldName = "temperature"
+  myFieldName = "logtemp"
   error = lk_hdfOpenField(myFilename,myFieldName,logtemp)
   if (error.ne.0) then
     write(6,*) "WeakRates :: problem reading the table, temp"
     weak_table_reader = -1
     return
   endif
-  logtemp = log10(logtemp)
+  !logtemp = log10(logtemp)
 
   !Ye
   myFieldName = "ye"
@@ -51,14 +51,14 @@ INTEGER function weak_table_reader(myFilename)
   endif
 
   !Mass factor in MeV
-  myFieldName = "mass_factor"
-  error = lk_hdfOpenField(myFilename,myFieldName,mass_fact)
-  if (error.ne.0) then
-    write(6,*) "WeakRates :: problem reading the table, mass_factor"
-    weak_table_reader = -1
-    return
-  endif
-  !mass_fact = 9.223158894119980d+02
+  ! myFieldName = "mass_factor"
+  ! error = lk_hdfOpenField(myFilename,myFieldName,mass_fact)
+  ! if (error.ne.0) then
+  !   write(6,*) "WeakRates :: problem reading the table, mass_factor"
+  !   weak_table_reader = -1
+  !   return
+  ! endif
+  mass_fact = 930.1758517947271
 
   nrho = size(logrho,1)
   ntemp = size(logtemp,1)
