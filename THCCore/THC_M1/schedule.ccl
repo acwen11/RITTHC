@@ -31,6 +31,7 @@ STORAGE: rF_rhs
 STORAGE: thc_m1_mask
 
 STORAGE: TimeIntegratorStage
+STORAGE: M1_OriginalTime
 STORAGE: max_rhserror
 
 ###############################################################################
@@ -238,6 +239,12 @@ if (optimize_prolongation) {
         OPTIONS: level
     } "enable / disable prolongation during RK steps"
 }
+
+SCHEDULE THC_M1_UpdateTime IN THC_M1_TimeStep BEFORE THC_M1_BoundaryConditions AFTER THC_M1_CalcUpdate
+{
+    LANG: C
+    OPTIONS: LEVEL
+} "Set the time integrator index"
 
 SCHEDULE GROUP THC_M1_BoundaryConditions IN THC_M1_TimeStep \
     AFTER THC_M1_CalcUpdate

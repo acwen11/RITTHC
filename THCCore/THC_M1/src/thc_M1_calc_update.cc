@@ -98,7 +98,7 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
     tensor::fluid_velocity_field_const fidu(alp, betax, betay, betaz, fidu_w_lorentz,
             fidu_velx, fidu_vely, fidu_velz);
 
-		// Don't think this is necessary since IGM has separate GFs for each component?
+		// Don't think this is necessary since IGM has separate GFs for each component
     // int const siz = UTILS_GFSIZE(cctkGH);
     // CCTK_REAL * sconx = &scon[0*siz];
     // CCTK_REAL * scony = &scon[1*siz];
