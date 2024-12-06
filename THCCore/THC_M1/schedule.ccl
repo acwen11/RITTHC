@@ -226,7 +226,7 @@ if (backreact) {
 		schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in THC_M1_WRAP after IllinoisGRMHD_conserv_to_prims
 		{
 				# We must sync {P,rho_b,vx,vy,vz} here.
-				SYNC: grmhd_primitives_allbutBi
+				SYNC: grmhd_primitives_scalar,grmhd_primitives_vector
 				LANG: C
 		} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 }
