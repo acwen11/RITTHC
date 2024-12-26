@@ -8,6 +8,8 @@ USES INCLUDE: utils.hh
 USES INCLUDE: utils_macro.h
 USES INCLUDE: thc_printer.hh
 
+USES INCLUDE: WVU_EOS_Tabulated_headers.hh # To get access to EOS mins/maxes
+
 # Boundary conditions
 CCTK_INT FUNCTION Boundary_SelectVarForBC(                                     \
         CCTK_POINTER_TO_CONST IN cctkGH,                                       \

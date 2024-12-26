@@ -24,8 +24,10 @@
 #include "utils.hh"
 
 #include "thc_M1_closure.hh"
+#include "WVU_EOS_Tabulated_headers.hh"
 
 using namespace utils;
+using namespace std;
 using namespace thc::m1;
 
 extern "C" void THC_M1_AddToTmunu(CCTK_ARGUMENTS) {
@@ -40,17 +42,18 @@ extern "C" void THC_M1_AddToTmunu(CCTK_ARGUMENTS) {
     gsl_error_handler_t * gsl_err = gsl_set_error_handler_off();
 
     closure_t closure_fun;
+    closure_t closure_default;
     if (CCTK_Equals(closure, "Eddington")) {
-        closure_fun = eddington;
+        closure_default = eddington;
     }
     else if (CCTK_Equals(closure, "Kershaw")) {
-        closure_fun = kershaw;
+        closure_default = kershaw;
     }
     else if (CCTK_Equals(closure, "Minerbo")) {
-        closure_fun = minerbo;
+        closure_default = minerbo;
     }
     else if (CCTK_Equals(closure, "thin")) {
-        closure_fun = thin;
+        closure_default = thin;
     }
     else {
         char msg[BUFSIZ];
@@ -82,6 +85,18 @@ extern "C" void THC_M1_AddToTmunu(CCTK_ARGUMENTS) {
                 continue;
             }
 
+            // Switch to optically thin closure in the atmosphere
+						CCTK_REAL xrho    = rho_b[ijk];
+						const CCTK_REAL r_atmo     = max(r_atmo_min, r[ijk]);
+						const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
+						const CCTK_REAL rho_atm    = max(rho_b_atm_max*pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
+						if (xrho < rho_atm * (1 + atmo_tol)) {
+								closure_fun = thin;
+						}
+						else {
+								closure_fun = closure_default;
+						}
+            
             tensor::metric<4> g_dd;
             tensor::inv_metric<4> g_uu;
             tensor::generic<CCTK_REAL, 4, 1> n_d;
@@ -107,7 +122,7 @@ extern "C" void THC_M1_AddToTmunu(CCTK_ARGUMENTS) {
             tensor::symmetric2<CCTK_REAL, 4, 2> rT_dd;
 
             // To de-densitize the Tmunu
-            CCTK_REAL const iV = 1.0/std::pow(psi_bssn[ijk], 6);
+            CCTK_REAL const iV = 1.0/pow(psi_bssn[ijk], 6);
 
             for (int ig = 0; ig < nspecies*ngroups; ++ig) {
                 int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);

@@ -289,8 +289,9 @@ void calc_Pthin(
         CCTK_REAL const E,
         tensor::generic<CCTK_REAL, 4, 1> const & F_d,
         tensor::symmetric2<CCTK_REAL, 4, 2> * P_dd) {
+    DECLARE_CCTK_PARAMETERS;
     CCTK_REAL const F2 = tensor::dot(g_uu, F_d, F_d);
-    CCTK_REAL fac = (F2 > 0 ? E/F2 : 0);
+    CCTK_REAL fac = (F2 > 0 ? (E - rad_E_floor)/F2 : 0);
     for (int a = 0; a < 4; ++a)
     for (int b = a; b < 4; ++b) {
         P_dd->at(a,b) = fac * F_d(a) * F_d(b);

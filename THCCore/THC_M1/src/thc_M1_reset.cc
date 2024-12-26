@@ -46,8 +46,6 @@ extern "C" void THC_M1_Reset(CCTK_ARGUMENTS) {
 			}
 		}
 
-    // std::memset(rN, rad_N_floor, siz);
-    // std::memset(rE, rad_E_floor, siz);
     std::memset(rFx, 0, siz);
     std::memset(rFy, 0, siz);
     std::memset(rFz, 0, siz);
