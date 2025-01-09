@@ -114,6 +114,11 @@ REAL floor_tol "Radiation floor tolerance" STEERABLE=ALWAYS
     0:* :: "Any non negative number"
 } 0.0
 
+# REAL thin_tol "Tolerance for forcing thin closure" STEERABLE=ALWAYS
+# {
+#     0:* :: "Any non negative number"
+# } 0.0
+
 REAL rad_eps "Impose F_a F^a < (1 - rad_E_eps) E2" STEERABLE=ALWAYS
 {
     0:* :: "Any non negative number"

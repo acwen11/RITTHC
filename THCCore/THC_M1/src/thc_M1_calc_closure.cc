@@ -37,12 +37,11 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
     if (verbose) {
         CCTK_INFO("THC_M1_CalcClosure");
     }
-		// CCTK_VINFO("I see EOS rho min as %e", nuc_eos::eos_rhomin);
 
     // Disable GSL error handler
     gsl_error_handler_t * gsl_err = gsl_set_error_handler_off();
 
-    closure_t closure_fun;
+    // closure_t closure_fun;
     closure_t closure_default;
     if (CCTK_Equals(closure, "Eddington")) {
         closure_default = eddington;
@@ -79,6 +78,7 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
         gsl_root_fsolver * gsl_solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
 
         UTILS_LOOP3_DYN(thc_m1_calc_closure,
+        // UTILS_LOOP3(thc_m1_calc_closure,
                 k, 0, cctk_lsh[2],
                 j, 0, cctk_lsh[1],
                 i, 0, cctk_lsh[0]) {
@@ -103,16 +103,38 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
             }
 
             // Switch to optically thin closure in the atmosphere
-						CCTK_REAL xrho    = rho_b[ijk];
+						// closure_t closure_default;
+						// if (CCTK_Equals(closure, "Eddington")) {
+						// 		closure_default = eddington;
+						// }
+						// else if (CCTK_Equals(closure, "Kershaw")) {
+						// 		closure_default = kershaw;
+						// }
+						// else if (CCTK_Equals(closure, "Minerbo")) {
+						// 		closure_default = minerbo;
+						// }
+						// else if (CCTK_Equals(closure, "thin")) {
+						// 		closure_default = thin;
+						// }
+						// else {
+						// 		char msg[BUFSIZ];
+						// 		snprintf(msg, BUFSIZ, "Unknown closure \"%s\"", closure);
+						// 		CCTK_ERROR(msg);
+						// }
+
+						CCTK_REAL xrho    = rho[ijk];
 						const CCTK_REAL r_atmo     = max(r_atmo_min, r[ijk]);
 						const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
 						const CCTK_REAL rho_atm    = max(rho_b_atm_max*pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
-						if (xrho < rho_atm * (1 + atmo_tol)) {
-								closure_fun = thin;
-						}
-						else {
-								closure_fun = closure_default;
-						}
+
+						closure_t closure_fun = (xrho < rho_atm * (1 + atmo_tol)) ? thin : closure_default;
+						//if (xrho < rho_atm * (1 + thin_tol)) {
+						// if (xrho < rho_atm * (1 + atmo_tol)) {
+						// 		closure_fun = thin;
+						// }
+						// else {
+						// 		closure_fun = closure_default;
+						// }
 
             tensor::metric<4> g_dd;
             tensor::inv_metric<4> g_uu;
@@ -179,6 +201,15 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
                         fidu_w_lorentz[ijk], v_u, rJ[i4D], rE[i4D], F_d);
                 assert(Gamma > 0);
                 rnnu[i4D] = rN[i4D]/Gamma;
+							
+								if ((chi[i4D] != 1.0) && (xrho < rho_atm * (1 + atmo_tol))) {
+									if (closure_fun == thin) {
+										CCTK_VINFO("Chi[%d] = %e even with thin closure!", ig, chi[i4D]);
+									}
+									else {
+										CCTK_VINFO("Chi[%d] Logic Error detected!", ig);
+									}
+								}
             }
         } UTILS_ENDLOOP3(thc_m1_calc_closure);
         gsl_root_fsolver_free(gsl_solver);
