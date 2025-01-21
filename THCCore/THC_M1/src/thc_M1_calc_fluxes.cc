@@ -315,7 +315,8 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
 
                 // ----------------------------------------------
                 // 2nd pass update the RHS
-                for (__k = THC_M1_NGHOST-1; __k < lsh[2]-THC_M1_NGHOST; ++__k) {
+                //for (__k = THC_M1_NGHOST-1; __k < lsh[2]-THC_M1_NGHOST; ++__k) {
+                for (__k = THC_M1_NGHOST; __k < lsh[2]-THC_M1_NGHOST; ++__k) {
                     index[0] = __i;
                     index[1] = __j;
                     index[2] = __k;
@@ -337,6 +338,7 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                         }
 
                         for (int iv = 0; iv < 5; ++iv) {
+                            CCTK_REAL const ujmm = cons[GFINDEX1D(__k-2, ig, iv)];
                             CCTK_REAL const ujm = cons[GFINDEX1D(__k-1, ig, iv)];
                             CCTK_REAL const uj = cons[GFINDEX1D(__k, ig, iv)];
                             CCTK_REAL const ujp = cons[GFINDEX1D(__k+1, ig, iv)];
@@ -384,6 +386,24 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                                        && k <  cctk_lsh[2] - THC_M1_NGHOST);
                                 //assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
                                 
+																// Apply dissipation
+																if (sawtooth) {
+                                		rhs[PINDEX1D(ig, iv)][ijk] -= m1_dis * idelta[dir] * (ujm - 2*uj + ujp);
+                                		// rhs[PINDEX1D(ig, iv)][ijk] += (m1_dis * idelta[dir] / 16) * (ujmm - 4*ujm + 6*uj - 4*ujp + ujpp);
+																}
+																		
+                                if (!isfinite(rhs[PINDEX1D(ig, iv)][ijk])) {
+																		CCTK_VINFO("RHS not finite at (i, j, k) = %d, %d, %d", i, j, k);
+																		CCTK_VINFO("RHS not finite at (x, y, z) = %e, %e, %e", x[ijk], y[ijk], z[ijk]);
+																		CCTK_VINFO("dir = %d", dir);
+																		CCTK_VINFO("group idx = %d, var idx = %d", ig, iv);
+																		CCTK_VINFO("new flux = %e", flux_num);
+																		CCTK_VINFO("flux_HO = %e, flux_LO = %e", flux_high, flux_low);
+																		CCTK_VINFO("flux LO Calc: fj = %e, fjp = %e, cc = %e, ccp = %e, uj = %e, ujp = %e", fj, fjp, cc, ccp, uj, ujp);
+																		CCTK_VINFO("Helper vars: kapa = %e, phi = %e, A = %e", kapa, phi, A);
+                                		assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
+																}
+
                                 const CCTK_REAL fluxsrc = idelta[dir]*(
                                    flux_jm[PINDEX1D(ig, iv)] -
                                    flux_jp[PINDEX1D(ig, iv)])*
@@ -404,17 +424,6 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
 																// 		CCTK_VINFO("flux LO Calc: fj = %e, fjp = %e, cc = %e, ccp = %e, uj = %e, ujp = %e", fj, fjp, cc, ccp, uj, ujp);
 																// 		CCTK_VINFO("Helper vars: kapa = %e, phi = %e, A = %e", kapa, phi, A);
 																// }
-                                if (!isfinite(rhs[PINDEX1D(ig, iv)][ijk])) {
-																		CCTK_VINFO("RHS not finite at (i, j, k) = %d, %d, %d", i, j, k);
-																		CCTK_VINFO("RHS not finite at (x, y, z) = %e, %e, %e", x[ijk], y[ijk], z[ijk]);
-																		CCTK_VINFO("dir = %d", dir);
-																		CCTK_VINFO("group idx = %d, var idx = %d", ig, iv);
-																		CCTK_VINFO("new flux = %e", flux_num);
-																		CCTK_VINFO("flux_HO = %e, flux_LO = %e", flux_high, flux_low);
-																		CCTK_VINFO("flux LO Calc: fj = %e, fjp = %e, cc = %e, ccp = %e, uj = %e, ujp = %e", fj, fjp, cc, ccp, uj, ujp);
-																		CCTK_VINFO("Helper vars: kapa = %e, phi = %e, A = %e", kapa, phi, A);
-                                		assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
-																}
                             }
                         }
                     }

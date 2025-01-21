@@ -126,37 +126,18 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
             }
 
 						// Switch to optically thin closure in the atmosphere
-						// closure_t closure_default;
-						// if (CCTK_Equals(closure, "Eddington")) {
-						// 		closure_default = eddington;
-						// }
-						// else if (CCTK_Equals(closure, "Kershaw")) {
-						// 		closure_default = kershaw;
-						// }
-						// else if (CCTK_Equals(closure, "Minerbo")) {
-						// 		closure_default = minerbo;
-						// }
-						// else if (CCTK_Equals(closure, "thin")) {
-						// 		closure_default = thin;
-						// }
-						// else {
-						// 		char msg[BUFSIZ];
-						// 		snprintf(msg, BUFSIZ, "Unknown closure \"%s\"", closure);
-						// 		CCTK_ERROR(msg);
-						// }
-
-            CCTK_REAL xrho    = rho[ijk];
+						closure_t closure_fun;
+						CCTK_REAL xrho    = rho[ijk];
 						const CCTK_REAL r_atmo     = max(r_atmo_min, r[ijk]);
 						const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
 						const CCTK_REAL rho_atm    = max(rho_b_atm_max*pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
 
-						closure_t closure_fun = (xrho < rho_atm * (1 + atmo_tol)) ? thin : closure_default;
-						// if (xrho < rho_atm * (1 + atmo_tol)) {
-						// 		closure_fun = thin;
-						// }
-						// else {
-						// 		closure_fun = closure_default;
-						// }
+						if (closure_thin_atmo) {
+							closure_fun = (xrho < rho_atm * (1 + atmo_tol)) ? thin : closure_default;
+						}
+						else {
+							closure_fun = closure_default;
+						}
 
             tensor::metric<4> g_dd;
             tensor::inv_metric<4> g_uu;

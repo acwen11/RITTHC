@@ -28,6 +28,10 @@ STORAGE: rN_rhs
 STORAGE: rE_rhs
 STORAGE: rF_rhs
 
+STORAGE: rN_tmp
+STORAGE: rE_tmp
+STORAGE: rF_tmp
+
 STORAGE: thc_m1_mask
 
 STORAGE: TimeIntegratorStage
@@ -211,6 +215,14 @@ SCHEDULE THC_M1_CalcUpdate IN THC_M1_TimeStep \
 {
     LANG: C
 } "Semi-implicit update of radiation and matter fields"
+
+if (do_smoothing) {
+	SCHEDULE THC_M1_Smoothing IN THC_M1_TimeStep \
+			AFTER (THC_M1_CalcUpdate)
+	{
+			LANG: C
+	} "Smooth checkerboard instability by hand"
+}
 
 if (backreact) {
     SCHEDULE GROUP HydroBase_Boundaries IN THC_M1_WRAP AFTER THC_M1_EVOL

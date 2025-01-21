@@ -22,6 +22,7 @@ SRCS = thc_M1_analysis.cc \
        thc_M1_setmask.cc \
        thc_M1_setsym.cc \
        thc_M1_setup_test.cc \
+       thc_M1_smoothing.cc \
        thc_M1_sources.cc \
        thc_M1_test_bc.cc \
        thc_M1_time_integrator.cc \
