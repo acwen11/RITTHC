@@ -1,0 +1,131 @@
+# Interface definition for thorn WeakRates
+IMPLEMENTS: WeakRates
+#INHERITS: EOS_Thermal_Table3d
+
+# Normalized neutrino emissivities
+CCTK_INT FUNCTION NeutrinoEmission( \
+        CCTK_REAL IN rho,\
+        CCTK_REAL IN temp,\
+        CCTK_REAL IN ye,\
+        CCTK_REAL OUT r_nue,\
+        CCTK_REAL OUT r_nua,\
+        CCTK_REAL OUT r_nux,\
+        CCTK_REAL OUT q_nue,\
+        CCTK_REAL OUT q_nua,\
+        CCTK_REAL OUT q_nux)
+PROVIDES FUNCTION NeutrinoEmission WITH NeutrinoEmissionImpl LANGUAGE Fortran
+
+CCTK_INT FUNCTION NeutrinoOpacity( \
+        CCTK_REAL IN rho,\
+        CCTK_REAL IN temp,\
+        CCTK_REAL IN ye,\
+        CCTK_REAL OUT kappa_0_nue,\
+        CCTK_REAL OUT kappa_0_nua,\
+        CCTK_REAL OUT kappa_0_nux,\
+        CCTK_REAL OUT kappa_1_nue,\
+        CCTK_REAL OUT kappa_1_nua,\
+        CCTK_REAL OUT kappa_1_nux)
+PROVIDES FUNCTION NeutrinoOpacity WITH NeutrinoOpacityImpl LANGUAGE Fortran
+
+CCTK_INT FUNCTION NeutrinoAbsorptionRate( \
+        CCTK_REAL IN rho,\
+        CCTK_REAL IN temp,\
+        CCTK_REAL IN ye,\
+        CCTK_REAL OUT abs_0_nue,\
+        CCTK_REAL OUT abs_0_nua,\
+        CCTK_REAL OUT abs_0_nux,\
+        CCTK_REAL OUT abs_1_nue,\
+        CCTK_REAL OUT abs_1_nua,\
+        CCTK_REAL OUT abs_1_nux)
+PROVIDES FUNCTION NeutrinoAbsorptionRate WITH NeutrinoAbsorptionRateImpl LANGUAGE Fortran
+
+# Normalized neutrino density and average energy at fixed Ye and temperature
+CCTK_INT FUNCTION NeutrinoDensity( \
+        CCTK_REAL IN rho, \
+        CCTK_REAL IN temp, \
+        CCTK_REAL IN ye, \
+        CCTK_REAL OUT num_nue, \
+        CCTK_REAL OUT num_nua, \
+        CCTK_REAL OUT num_nux, \
+        CCTK_REAL OUT ene_nue, \
+        CCTK_REAL OUT ene_nua, \
+        CCTK_REAL OUT ene_nux)
+PROVIDES FUNCTION NeutrinoDensity WITH NeutrinoDensityImpl LANGUAGE Fortran
+
+# Weak equilibrium in optically thick conditions
+CCTK_INT FUNCTION WeakEquilibrium( \
+        CCTK_REAL IN rho, \
+        CCTK_REAL IN temp, \
+        CCTK_REAL IN ye, \
+        CCTK_REAL IN num_nue, \
+        CCTK_REAL IN num_nua, \
+        CCTK_REAL IN num_nux, \
+        CCTK_REAL IN ene_nue, \
+        CCTK_REAL IN ene_nua, \
+        CCTK_REAL IN ene_nux, \
+        CCTK_REAL OUT temp_eq, \
+        CCTK_REAL OUT ye_eq, \
+        CCTK_REAL OUT num_nue_eq, \
+        CCTK_REAL OUT num_nua_eq, \
+        CCTK_REAL OUT num_nux_eq, \
+        CCTK_REAL OUT ene_nue_eq, \
+        CCTK_REAL OUT ene_nua_eq, \
+        CCTK_REAL OUT ene_nux_eq)
+PROVIDES FUNCTION WeakEquilibrium WITH WeakEquilibriumImpl LANGUAGE Fortran
+# 
+# CCTK_INT FUNCTION NucleiAbar( \
+#         CCTK_REAL IN rho,\
+#         CCTK_REAL IN temp,\
+#         CCTK_REAL IN ye,\
+#         CCTK_REAL OUT abar)
+# PROVIDES FUNCTION NucleiAbar WITH NucleiAbarImpl LANGUAGE Fortran
+
+# Normalized average baryon mass
+CCTK_REAL FUNCTION AverageBaryonMass()
+PROVIDES FUNCTION AverageBaryonMass WITH AtomicMassImpl LANGUAGE Fortran
+
+# Aliased Funcs from WVU_EOS
+void FUNCTION WVU_EOS_THC_WeakRates_from_rho_Ye_T( CCTK_REAL IN rho,    \
+                                                                 CCTK_REAL IN Ye,     \
+                                                                 CCTK_REAL IN T,      \
+                                                                 CCTK_REAL OUT mu_e,  \
+                                                                 CCTK_REAL OUT mu_p,  \
+                                                                 CCTK_REAL OUT mu_n,  \
+                                                                 CCTK_REAL OUT X_n,   \
+                                                                 CCTK_REAL OUT X_p,   \
+                                                                 CCTK_REAL OUT X_h,   \
+                                                                 CCTK_REAL OUT Abar,   \
+                                                                 CCTK_REAL OUT Zbar)
+USES FUNCTION WVU_EOS_THC_WeakRates_from_rho_Ye_T 
+
+void FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T( CCTK_REAL IN rho,    \
+                                                                 CCTK_REAL IN Ye,     \
+                                                                 CCTK_REAL IN T,      \
+                                                                 CCTK_REAL OUT mu_e,  \
+                                                                 CCTK_REAL OUT mu_p,  \
+                                                                 CCTK_REAL OUT mu_n,  \
+                                                                 CCTK_REAL OUT muhat,  \
+                                                                 CCTK_REAL OUT X_n,   \
+                                                                 CCTK_REAL OUT X_p)
+USES FUNCTION WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T
+
+void FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T( CCTK_REAL IN rho,    \
+																							 CCTK_REAL IN Ye,     \
+																							 CCTK_REAL IN T,      \
+																							 CCTK_REAL OUT P,  \
+																							 CCTK_REAL OUT eps)
+USES FUNCTION WVU_EOS_P_and_eps_from_rho_Ye_T
+
+void FUNCTION WVU_EOS_share_nuc_eos( CCTK_INT OUT nrho,    \
+                                     CCTK_INT OUT ntemp,  \
+                                     CCTK_INT OUT nye,  \
+                                     CCTK_REAL OUT eos_rhomin,  \
+                                     CCTK_REAL OUT eos_rhomax,   \
+                                     CCTK_REAL OUT eos_tempmin,  \
+                                     CCTK_REAL OUT eos_tempmax,   \
+                                     CCTK_REAL OUT eos_yemin,  \
+                                     CCTK_REAL OUT eos_yemax,   \
+                                     CCTK_REAL OUT drho,   \
+                                     CCTK_REAL OUT dtemp,   \
+                                     CCTK_REAL OUT dye)
+USES FUNCTION WVU_EOS_share_nuc_eos
