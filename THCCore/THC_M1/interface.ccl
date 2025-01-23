@@ -129,11 +129,11 @@ USES FUNCTION EOS_Omni_press
 PUBLIC:
 
 ## Lab frame quantities
-CCTK_REAL rN[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="Lagrange_third_order_prolong" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Neutrino density in the lab frame"
+CCTK_REAL rN[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Neutrino density in the lab frame"
 
-CCTK_REAL rE[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="Lagrange_third_order_prolong" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Radiation energy density in the lab frame"
+CCTK_REAL rE[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Radiation energy density in the lab frame"
 
-CCTK_REAL rF[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="Lagrange_third_order_prolong" TensorTypeAlias="D" TensorWeight=+1.0 Interpolator="matter"'
+CCTK_REAL rF[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="D" TensorWeight=+1.0 Interpolator="matter"'
 {
     rFx, rFy, rFz
 } "Radiation energy flux in the lab frame"
@@ -158,7 +158,7 @@ CCTK_REAL rH[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeAlias
 PRIVATE:
 
 ## Diagnostics
-CCTK_REAL radial_fluxes[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="Lagrange_third_order_prolong" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"'
+CCTK_REAL radial_fluxes[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"'
 {
     radial_flux_0, radial_flux_1
 } "Neutrino radial number and energy fluxes"
