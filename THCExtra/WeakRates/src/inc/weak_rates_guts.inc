@@ -13,19 +13,9 @@
        nb = rho / mass_fact_cgs
 
       !Interpolate the chemical potentials (stored in MeV in the table)
+      !Interpolate the fractions
 			! ! ! This func wants rho in CU, T in MeV
 		   call WVU_EOS_THC_WeakRates_from_rho_Ye_T(rho * cgs2cactusRho, ye, temp, mu_e, mu_p, mu_n, xn, xp, xh, abar, zbar);	
-
-      !  mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      !  mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      !  mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
-
-      !Interpolate the fractions
-      !  abar = lkLinearInterpolation3d(lrho, ltemp, ye, ABAR)
-      !  zbar = lkLinearInterpolation3d(lrho, ltemp, ye, ZBAR)
-      !  xp   = lkLinearInterpolation3d(lrho, ltemp, ye, XP)
-      !  xn   = lkLinearInterpolation3d(lrho, ltemp, ye, XN)
-      !  xh   = lkLinearInterpolation3d(lrho, ltemp, ye, XH)
 
       !Compute the neutrino degeneracy assuming that neutrons and
       !protons chemical potentials DO NOT include the rest mass density
@@ -64,8 +54,8 @@
 
       !There is no significant defferences between Rosswog (prev. formula)
       !and Janka's prescriptions
-      !  eta_np = nb * ((2.0d0 * ye-1.0d0) / (exp(eta_p-eta_n) - 1.0d0))
-      !  eta_pn = eta_np * exp(eta_p-eta_n)
+      ! eta_np = nb * ((2.0d0 * ye-1.0d0) / (exp(eta_p-eta_n) - 1.0d0))
+      ! eta_pn = eta_np * exp(eta_p-eta_n)
 
      !See Bruenn (ApJSS 58 1985) formula 3.1, non degenerate matter limit.
       if  (rho < 2.0d11) then

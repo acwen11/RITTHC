@@ -14,7 +14,6 @@ INTEGER FUNCTION NeutrinoDens_cgs(rho, temp, ye,&
     use units
 
     implicit none
-    !DECLARE_CCTK_FUNCTIONS
 
     CCTK_REAL, INTENT(IN)  :: rho, temp, ye
     CCTK_REAL, INTENT(OUT) :: n_nue, n_nua, n_nux, en_nue, en_nua, en_nux

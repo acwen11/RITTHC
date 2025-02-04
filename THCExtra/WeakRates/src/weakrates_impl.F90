@@ -352,7 +352,6 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     y_in(4) = 0.25*n_nux/nb
 
     ! Compute energy (note that tab3d_eps works in Cactus units)
-    ! eps0 = tab3d_eps(rho0/cactus2cgsRho, temp, ye)*cactus2cgsEps
     call WVU_EOS_P_and_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, press, &
       eps0)
     eps0 = eps0 * cactus2cgsEps

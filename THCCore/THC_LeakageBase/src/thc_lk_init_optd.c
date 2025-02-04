@@ -444,6 +444,7 @@ void THC_LK_InitOpticalDepthSimple(CCTK_ARGUMENTS) {
                 i, 0, cctk_lsh[0]) {
             int const ijk = CCTK_GFINDEX3D(cctkGH, i, j, k);
             CCTK_REAL const tau = rho[ijk]/rho_b_atm_max - 1.0;
+            CCTK_VERROR("THC Leakage is currently not coupled to the IGM graded atmosphere!!!");
             for(int v = 0; v < 6; ++v) {
                 optd_vec[v][ijk] = tau;
             }

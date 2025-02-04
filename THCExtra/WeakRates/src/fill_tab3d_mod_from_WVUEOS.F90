@@ -37,7 +37,7 @@ INTEGER function fill_tab3d_mod_from_WVUEOS()
   dlrho = dlrho * log10(exp(1.0))
   dltemp = dltemp * log10(exp(1.0))
 
-  ! Hard coding mineps = 0 adjusted value!!!
+  ! Hard coding APR4 mineps = 0 adjusted value!!!
   mass_fact = 930.17637269
 
   fill_tab3d_mod_from_WVUEOS = 0

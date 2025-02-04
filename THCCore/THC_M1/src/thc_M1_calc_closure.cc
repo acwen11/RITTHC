@@ -77,7 +77,6 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
         gsl_root_fsolver * gsl_solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
 
         UTILS_LOOP3_DYN(thc_m1_calc_closure,
-        // UTILS_LOOP3(thc_m1_calc_closure,
                 k, 0, cctk_lsh[2],
                 j, 0, cctk_lsh[1],
                 i, 0, cctk_lsh[0]) {
@@ -180,15 +179,6 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
                         fidu_w_lorentz[ijk], v_u, rJ[i4D], rE[i4D], F_d);
                 assert(Gamma > 0);
                 rnnu[i4D] = rN[i4D]/Gamma;
-							
-								// if ((chi[i4D] != 1.0) && (xrho < rho_atm * (1 + atmo_tol))) {
-								// 	if (closure_fun == thin) {
-								// 		CCTK_VINFO("Chi[%d] = %e even with thin closure!", ig, chi[i4D]);
-								// 	}
-								// 	else {
-								// 		CCTK_VINFO("Chi[%d] Logic Error detected!", ig);
-								// 	}
-								// }
             }
         } UTILS_ENDLOOP3(thc_m1_calc_closure);
         gsl_root_fsolver_free(gsl_solver);

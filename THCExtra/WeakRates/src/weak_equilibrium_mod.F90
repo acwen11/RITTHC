@@ -235,9 +235,6 @@
       !Interpolate the chemical potentials (stored in MeV in the table)
       lrho  = log10(rho)
       ltemp = log10(T_eq)
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, y_eq(1), MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, y_eq(1), MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, y_eq(1), MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n, muhat, xn, xp)
       mus(1) = mu_e           ! electron chem pot including rest mass [MeV]
@@ -269,7 +266,6 @@
       ! check that the energy is positive
       if (e_eq(1).lt.nb*mass_fact_cgs*clight*clight) then
         ierr = 1
-        !write(6,*)'WeakEq: Negative Energy: ', e_eq(1)
         T_eq = T
         y_eq = y_in
         e_eq = e_in
@@ -279,7 +275,6 @@
       ! check that Y_e is within the range
       if (y_eq(1).lt.0.or.y_eq(1).gt.1) then
         ierr = 1
-        !write(6,*)'WeakEq: Wack Y_e: ', y_eq(1)
         T_eq = T
         y_eq = y_in
         e_eq = e_in
@@ -536,9 +531,6 @@
       lrho  = log10(rho)
       ltemp = log10(x(1))
       ye = x(2)
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, ye, x(1), mu_e, mu_p, mu_n, muhat, xn, xp)
       mus(1) = mu_e
@@ -546,7 +538,6 @@
 
       !Call the EOS
       rho_cu = rho*cgs2cactusRho
-      !eps_cu = tab3d_eps(rho_cu, x(1), ye)
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, x(1), press, &
         eps_cu)
       e = rho*(clight**2 + eps_cu*cactus2cgsEps)
@@ -664,9 +655,6 @@
       ltemp = log10(x(1))
       t = x(1)
       ye = x(2)
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, ye, t, mu_e, mu_p, mu_n, muhat, xn, xp)
       mus(1) = mu_e               ! electron chemical potential (w rest mass) [MeV]
@@ -802,14 +790,10 @@
       ! first, for ye slightly smaller
       ye1 = max(ye - delta_ye, eos_yemin)
       yev = ye1
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, yev, MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, yev, MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, yev, MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
 
       rho_cu = rho*cgs2cactusRho
-      ! eps_cu = tab3d_eps(rho_cu, t, yev)
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
         eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
@@ -820,13 +804,9 @@
       ! second, for ye slightly larger
       ye2 = min(ye + delta_ye, eos_yemax)
       yev = ye2
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, yev, MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, yev, MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, yev, MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
 
-      ! eps_cu = tab3d_eps(rho_cu, t, yev)
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
         eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
@@ -854,13 +834,9 @@
       ! first, for t slightly smaller
       tv = t1
       ltemp = log10(t-delta_t)
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, ye, t-delta_t, mu_e, mu_p, mu_n, muhat, xn, xp)
 
-      ! eps_cu = tab3d_eps(rho_cu, tv, ye)
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
         eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
@@ -871,13 +847,9 @@
       ! second, for t slightly larger
       tv = t2
       ltemp = log10(t+delta_t)
-      ! mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      ! mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      ! mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
          cgs2cactusRho, ye, t+delta_t, mu_e, mu_p, mu_n, muhat, xn, xp)
 
-      ! eps_cu = tab3d_eps(rho_cu, tv, ye)
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
         eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)

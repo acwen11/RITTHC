@@ -203,18 +203,6 @@ CCTK_REAL rF_rhs[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeA
 
 CCTK_INT thc_m1_mask TYPE=GF TAGS='Prolongation="None"' "Mask points that should not be evolved"
 
-### Temporary GFs for smoothing operation
-CCTK_REAL rN_tmp[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeAlias="Scalar"' "Neutrino density in the lab frame"
-
-CCTK_REAL rE_tmp[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeAlias="Scalar"' "Radiation energy density in the lab frame"
-
-CCTK_REAL rF_tmp[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeAlias="D"'
-{
-    rFx_tmp, rFy_tmp, rFz_tmp
-} "Radiation energy flux in the lab frame"
-
 CCTK_INT TimeIntegratorStage TAGS='Checkpoint="no"' "Current stage of the time integrator"
 
 CCTK_REAL M1_OriginalTime TAGS='Checkpoint="no"' "Time at end of fluid integration"
-
-CCTK_REAL max_rhserror TYPE=Scalar TAGS='Checkpoint="no"' "maximum rhs error in the atmosphere"

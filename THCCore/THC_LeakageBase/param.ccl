@@ -1,8 +1,5 @@
 # Parameter definitions for thorn THC_LeakageBase
 
-# SHARES: THC_Core
-# USES BOOLEAN verbose
-# USES REAL atmo_rho
 SHARES: IllinoisGRMHD
 USES REAL rho_b_atm_max
 

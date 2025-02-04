@@ -76,7 +76,6 @@ extern "C" void THC_M1_AddToTmunu(CCTK_ARGUMENTS) {
     {
         gsl_root_fsolver * gsl_solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
         UTILS_LOOP3_DYN(thc_m1_tmunu,
-        // UTILS_LOOP3(thc_m1_tmunu,
                 k, 0, cctk_lsh[2],
                 j, 0, cctk_lsh[1],
                 i, 0, cctk_lsh[0]) {

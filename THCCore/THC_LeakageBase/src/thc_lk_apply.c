@@ -54,17 +54,10 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
     CCTK_REAL const * vely = &vel[1*siz];
     CCTK_REAL const * velz = &vel[2*siz];
 
-    // CCTK_REAL * sconx = &mhd_st_x[siz];
-    // CCTK_REAL * scony = &mhd_st_y[siz];
-    // CCTK_REAL * sconz = &mhd_st_z[siz];
-
-    CCTK_INFO("Loaded GFs");
-
     CCTK_REAL const mb = AverageBaryonMass();
 
     CCTK_REAL const dt = CCTK_DELTA_TIME;
 
-    CCTK_INFO("Starting Loop");
 #pragma omp parallel
     {
         UTILS_LOOP3(thc_lk_apply,
@@ -85,7 +78,7 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
                 assert(isfinite(abs_number[ijk]));
                 assert(isfinite(abs_energy[ijk]));
 
-								double volform = pow(psi_bssn[ijk], 6);
+                double volform = pow(psi_bssn[ijk], 6);
 
                 /* Total lepton number / energy absorption (emission) */
                 CCTK_REAL const R = abs_number[ijk] -
@@ -107,9 +100,7 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
                     w_lorentz[ijk] * Q;
 
                 /* Update composition */
-                //CCTK_REAL const dens_tot = densxp[ijk] + densxn[ijk];
                 Ye_star[ijk] = Ye_star[ijk] / (1.0 - densxp_dot/Ye_star[ijk] * dt);
-                //densxn[ijk] = dens_tot - densxp[ijk];
 
                 /* Update momentum */
                 mhd_st_x[ijk] = mhd_st_x[ijk] + dt * sconx_dot;

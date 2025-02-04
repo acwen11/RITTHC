@@ -39,14 +39,6 @@ using namespace utils;
 using namespace thc::m1;
 using namespace std;
 
-
-//------ EOS_Omni stuff ------
-// namespace nuc_eos {
-//   extern double eos_yemin, eos_yemax;
-//   extern double eos_rhomin, eos_rhomax;
-//   extern double eos_tempmin, eos_tempmax;
-// }
-
 extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
     DECLARE_CCTK_ARGUMENTS
     DECLARE_CCTK_PARAMETERS
@@ -58,7 +50,6 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
     // Disable GSL error handler
     gsl_error_handler_t * gsl_err = gsl_set_error_handler_off();
 
-    // closure_t closure_fun;
     closure_t closure_default;
     if (CCTK_Equals(closure, "Eddington")) {
         closure_default = eddington;
@@ -99,12 +90,6 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
             gyy, gyz, gzz, kxx, kxy, kxz, kyy, kyz, kzz, psi_bssn);
     tensor::fluid_velocity_field_const fidu(alp, betax, betay, betaz, fidu_w_lorentz,
             fidu_velx, fidu_vely, fidu_velz);
-
-		// Don't think this is necessary since IGM has separate GFs for each component
-    // int const siz = UTILS_GFSIZE(cctkGH);
-    // CCTK_REAL * sconx = &scon[0*siz];
-    // CCTK_REAL * scony = &scon[1*siz];
-    // CCTK_REAL * sconz = &scon[2*siz];
 
     CCTK_REAL const mb = AverageBaryonMass();
 
@@ -382,44 +367,11 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                 theta = max(0.0, theta);
             }
 
-            //
-            // Step 2.5 -- zero rhs in atmosphere
-            // CCTK_REAL xrho    = rho_b[ijk];
-						// const CCTK_REAL r_atmo     = std::max(r_atmo_min, r[ijk]);
-						// const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
-						// const CCTK_REAL rho_atm    = std::max(rho_b_atm_max*std::pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
-
-						// for (int ig = 0; ig < ngroups*nspecies; ++ig) {
-						// 		int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
-						// 		if ((std::abs(dt*rE_rhs[i4D]) < rad_E_floor * floor_tol) && (xrho <= rho_atm * (1 + floor_tol))) {
-						// 				rE_rhs[i4D]  = 0.0;
-						// 				rFx_rhs[i4D] = 0.0;
-						// 				rFy_rhs[i4D] = 0.0;
-						// 				rFz_rhs[i4D] = 0.0;
-						// 				rN_rhs[i4D]  = 0.0;
-
-						// 				DrE[ig]  = 0.0;
-            //         DrFx[ig] = 0.0;
-            //         DrFy[ig] = 0.0;
-            //         DrFz[ig] = 0.0;
-						// 				DrN[ig]  = 0.0;
-						// 				DDxp[ig] = 0.0;
-						// 		}
-						// }
 
             //
             // Step 3 -- update fields
             for (int ig = 0; ig < ngroups*nspecies; ++ig) {
                 int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
-
-								CCTK_REAL E_rhstot = dt*rE_rhs[i4D]  + theta*DrE[ig];
-								// if ((r[ijk] > (1.2*cctk_time) + 50) && (E_rhstot > 1e-18)) { // if E is growing far in the atmosphere before radiation can causally reach there...
-								// 		CCTK_VINFO("Nonzero Erhs = %e in atmosphere!", E_rhstot);
-								// 		CCTK_VINFO("At (i,j,k) = (%d, %d, %d); (x,y,z) = (%e, %e, %e)", i, j, k, x[ijk], y[ijk], z[ijk]);
-								// 		CCTK_VINFO("E_p = %e", rE_p[i4D]);
-								// 		CCTK_VINFO("dt = %e, rE_rhs = %e, theta = %e, DrE = %e", dt, rE_rhs[i4D], theta, DrE[ig]);
-								// 		CCTK_VINFO("alp = %e, volform = %e, eta = %e, abs = %e, scat = %e", alp[ijk], volform, eta_1[i4D], abs_1[i4D], scat_1[i4D]);
-								// }
 
                 //
                 // Update radiation quantities
@@ -432,18 +384,10 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                 CCTK_REAL N =  rN_p[i4D] + dt*rN_rhs[i4D]  + theta*DrN[ig];
                 N = max(N, rad_N_floor);
 
-
-								if ((r[ijk] > (0.85 * cctk_time) + 10) && (E_rhstot > 1e-19)) { // if E is growing far in the atmosphere before radiation can causally reach there...
-										if (E > *max_rhserror) {
-												*max_rhserror = E;
-												CCTK_VINFO("new max rhs error = %e", *max_rhserror);
-										}
-								}
-
                 //
                 // Compute back reaction on the fluid
                 // NOTE: fluid backreaction is only needed at the last substep
-                if ((backreact && 0 == *TimeIntegratorStage) && (xrho > rho_atm * (1 + atmo_tol))) {
+                if (backreact && 0 == *TimeIntegratorStage) {
                     assert (ngroups == 1);
                     assert (nspecies == 3);
 
@@ -458,10 +402,10 @@ extern "C" void THC_M1_CalcUpdate(CCTK_ARGUMENTS) {
                     netheat[ijk] -= theta*DrE[ig];
                 }
 
-								// Set M1 atmo at final stage 
-                if (0 == *TimeIntegratorStage) {
-                	atmo_reset(g_uu, &E, &F_d);
-								}
+								// This sets M1 atmo (E = floor, F^i = 0) at final stage 
+                // if (0 == *TimeIntegratorStage) {
+                // 	atmo_reset(g_uu, &E, &F_d);
+								// }
 
                 //
                 // Save updated results into grid functions

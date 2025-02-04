@@ -6,9 +6,6 @@ EXTENDS KEYWORD initial_hydro "Hydro initial data"
     "THC_M1" :: ""
 }
 
-# SHARES: THC_Core
-# USES BOOLEAN verbose
-
 SHARES: IllinoisGRMHD
 USES CCTK_STRING igm_eos_type
 USES REAL igm_T_atm
@@ -55,10 +52,6 @@ KEYWORD closure "Which closure to use" STEERABLE=ALWAYS
 } "Minerbo"
 
 BOOLEAN closure_thin_atmo "force thin closure in atmosphere"
-{
-} "no"
-
-BOOLEAN do_smoothing "take nearest neighbor avg if checkerboard"
 {
 } "no"
 
@@ -126,11 +119,6 @@ REAL floor_tol "Radiation floor tolerance" STEERABLE=ALWAYS
 {
     0:* :: "Any non negative number"
 } 0.0
-
-# REAL thin_tol "Tolerance for forcing thin closure" STEERABLE=ALWAYS
-# {
-#     0:* :: "Any non negative number"
-# } 0.0
 
 REAL rad_eps "Impose F_a F^a < (1 - rad_E_eps) E2" STEERABLE=ALWAYS
 {

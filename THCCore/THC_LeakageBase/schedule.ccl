@@ -28,7 +28,7 @@ SCHEDULE THC_LK_SetSym AT CCTK_BASEGRID
 
 # Here we assume that nobody else is evolving hydro so we register HydroBase
 # variables as save and restore
-# Actually IGM is evolving hydro
+# TODO: Make sure this is consistent with IGM
 # if(!CCTK_Equals(evolution_method, "THCode")) {
 #     SCHEDULE THC_LK_MoLRegister IN MoL_Register
 #     {

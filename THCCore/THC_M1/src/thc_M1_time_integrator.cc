@@ -47,7 +47,10 @@ extern "C" void THC_M1_UpdateTime(CCTK_ARGUMENTS) {
     else if (*TimeIntegratorStage == 0) {
 			cctkGH->cctk_time = *M1_OriginalTime;
 		}
-		CCTK_VINFO("Integrated to time %e", cctkGH->cctk_time);
+
+    if (verbose) {
+			CCTK_VINFO("Integrated to time %e", cctkGH->cctk_time);
+    }
 }
 
 extern "C" void THC_M1_FinalizeTimeIntegrator(CCTK_ARGUMENTS) {

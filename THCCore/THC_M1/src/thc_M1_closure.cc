@@ -652,12 +652,6 @@ void apply_floor(
     DECLARE_CCTK_PARAMETERS;
 
     *E = max(rad_E_floor, *E);
-    // if (*E < rad_E_floor * (1 + floor_tol)) {
-		// 	*E = rad_E_floor;
-    //   // for (int a = 0; a < 4; ++a) {
-    //   //     F_d->at(a) = 0.0;
-    //   // }
-		// }
 
     CCTK_REAL const F2 = tensor::dot(g_uu, *F_d, *F_d);
     CCTK_REAL const lim = (*E)*(*E)*(1 - rad_eps);
