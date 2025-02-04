@@ -26,7 +26,7 @@ INTEGER function TableReader(myFilename)
   print*,'TabulatedEOS3D: ....loading the table with the EOS'
 
   !DENSITY
-  myFieldName = "logrho"
+  myFieldName = "density"
   error = hdfOpenField(myFilename,myFieldName,logrho)
   !print*,'Here1'
   if (error.ne.0) then
@@ -34,19 +34,18 @@ INTEGER function TableReader(myFilename)
     TableReader = -1
     return
   endif
-  logrho = 10**logrho
   logrho = log10(logrho*cgs2cactusRho)
 
 
   !TEMPERATURE
-  myFieldName = "logtemp"
+  myFieldName = "temperature"
   error = hdfOpenField(myFilename,myFieldName,logtemp)
   if (error.ne.0) then
     write(*,*) "TableReader :: problem reading the table, temp"
     TableReader = -1
     return
   endif
-  !logtemp = log10(logtemp)
+  logtemp = log10(logtemp)
 
   !Ye
   myFieldName = "ye"
@@ -66,25 +65,23 @@ INTEGER function TableReader(myFilename)
   allocate(allvariables(nrho,ntemp,nye,nvars))
 
   !Pressure
-  myFieldName = "logpress"
+  myFieldName = "pressure"
   error = hdfOpenField(myFilename,myFieldName,allvariables(:,:,:,LPRESS_IDX))
   if (error.ne.0) then
     write(*,*) "TableReader :: problem reading the table, PRESS"
     TableReader = -1
     return
   endif
-  allvariables(:,:,:,LPRESS_IDX) = 10**allvariables(:,:,:,LPRESS_IDX)
   allvariables(:,:,:,LPRESS_IDX) = log10(allvariables(:,:,:,LPRESS_IDX)*cgs2cactusPress)
 
   !Internal Energy
-  myFieldName = "logenergy"
+  myFieldName = "internalEnergy"
   error = hdfOpenField(myFilename,myFieldName,allvariables(:,:,:,LENERGY_IDX))
   if (error.ne.0) then
     write(*,*) "TableReader :: problem reading the table, ENERGY"
     TableReader = -1
     return
   endif
-  allvariables(:,:,:,LENERGY_IDX)=10**allvariables(:,:,:,LENERGY_IDX)
   allvariables(:,:,:,LENERGY_IDX)=log10(allvariables(:,:,:,LENERGY_IDX)*cgs2cactusEps)
 
   !cs2
@@ -97,7 +94,7 @@ INTEGER function TableReader(myFilename)
   endif
 
   !depsdT_rho
-  myFieldName = "dedt"
+  myFieldName = "depsdT_rho"
   error = hdfOpenField(myFilename,myFieldName,allvariables(:,:,:,DEDT_IDX))
   if (error.ne.0) then
     write(*,*) "TableReader :: problem reading the table, DEDT"
