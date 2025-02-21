@@ -168,6 +168,9 @@ void ptov::pert_loc(pmode_cowling &mode, const eos_cold& eosc,
   id.rmd      = eosc.rmd_from_hm1(hm1);
   id.sed      = eosc.sed_from_hm1(hm1);
   id.press    = eosc.p_from_hm1(hm1);
+	if (id.vsqr() >= 0.99999) {
+		id.vel *= 0.9 / id.vsqr(); // idgaf anymore
+	}
   error::incase(id.vsqr() >= 0.99999, "TOV: velocity perturbation too large, v>=c");
   id.florentz = id.florentz_from_vel();
 }
