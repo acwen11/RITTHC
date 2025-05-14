@@ -47,8 +47,10 @@ extern "C" void THC_ID_Static(CCTK_ARGUMENTS) {
     DECLARE_CCTK_ARGUMENTS
     DECLARE_CCTK_PARAMETERS
 
-		igm_eos_parameters eos;
-  	initialize_igm_eos_parameters_from_input(igm_eos_key,cctk_time,eos);
+  	// Prepare for EOS function calls
+		const CCTK_INT  havetemp     = 0;
+		const CCTK_INT  eoskey       = EOS_Omni_GetHandle(igm_eos_type);
+		const CCTK_REAL rf_precision = 1e-10; // This is a dummy variable
 
     CCTK_REAL * velx = &vel[0*UTILS_GFSIZE(cctkGH)];
     CCTK_REAL * vely = &vel[1*UTILS_GFSIZE(cctkGH)];
@@ -76,10 +78,21 @@ extern "C" void THC_ID_Static(CCTK_ARGUMENTS) {
             velz[ijk] = static_velz;
             eps[ijk]  = static_eps;
 
-						// Compute Pcold
-						CCTK_REAL static_press;
-						compute_P_cold(eos, static_rho, static_press);
-						press[ijk] = static_press;
+						// Prepare for EoS function calls
+						CCTK_INT  keyerr       = 0;
+						CCTK_INT  anyerr       = 0;
+						CCTK_REAL xrho         = static_rho;
+						CCTK_REAL xye          = 0.0;
+						CCTK_REAL xtemp        = 0.0;
+						CCTK_REAL xpress       = 0.0;
+						CCTK_REAL xeps         = static_eps;
+						CCTK_REAL xent         = 0.0;
+
+			 			EOS_Omni_press(eoskey,havetemp,rf_precision,1,
+								&xrho,&xeps,&xtemp,&xye,&xpress,
+							 &keyerr,&anyerr);
+
+						press[ijk] = xpress;
 
             if (set_Y_e) {
                 Y_e[ijk] = static_ye;

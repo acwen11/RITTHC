@@ -10,6 +10,9 @@ EXTENDS KEYWORD initial_Y_e "Y_e initial data"
     "THC_Initial" :: ""
 }
 
+SHARES: IllinoisGRMHD
+USES CCTK_STRING igm_eos_type
+
 #SHARES: THC_Core
 #USES BOOLEAN verbose
 #

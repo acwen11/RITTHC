@@ -120,6 +120,7 @@ REAL rad_E_floor "Radiation energy density floor" STEERABLE=ALWAYS
     0:* :: "Any non negative number"
 } 1.0e-15
 
+# Not used anymore
 REAL floor_tol "Radiation floor tolerance" STEERABLE=ALWAYS
 {
     0:* :: "Any non negative number"
