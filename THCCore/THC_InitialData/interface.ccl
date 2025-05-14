@@ -1,5 +1,8 @@
 # Interface definition for thorn THC_InitialData
 IMPLEMENTS:     THC_InitialData
-INHERITS:       HydroBase, Grid, THC_Tracer
+INHERITS:       HydroBase, Grid, IllinoisGRMHD #, THC_Tracer
 
+# uses include header: IllinoisGRMHD_headers.h
 USES INCLUDE: utils_macro.h
+
+CCTK_REAL tracer[ntracers] TYPE=GF TIMELEVELS=3 TAGS='ProlongationParameter="HydroBase::prolongation_type" tensortypealias="Scalar" tensorweight=+0.0 interpolator="matter"'  "Dummy"

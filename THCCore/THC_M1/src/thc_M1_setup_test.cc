@@ -106,8 +106,10 @@ extern "C" void THC_M1_SetupTest(CCTK_ARGUMENTS) {
                 else {
                     for (int ig = 0; ig < ngroups*nspecies; ++ig) {
                         int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
-                        rE[i4D] = 0.0;
-                        rN[i4D] = 0.0;
+                        //rE[i4D] = 0.0;
+                        //rN[i4D] = 0.0;
+												rE[i4D] = rad_E_floor;
+												rN[i4D] = rad_N_floor;
                         rFx[i4D] = 0.0;
                         rFy[i4D] = 0.0;
                         rFz[i4D] = 0.0;
@@ -122,7 +124,8 @@ extern "C" void THC_M1_SetupTest(CCTK_ARGUMENTS) {
                             rE[i4D] = 1.0;
                         }
                         else {
-                            rE[i4D] = 0.0;
+                            //rE[i4D] = 0.0;
+														rE[i4D] = rad_E_floor;
                         }
                     }
                     else if (CCTK_Equals(diff_profile, "gaussian")) {
@@ -156,8 +159,10 @@ extern "C" void THC_M1_SetupTest(CCTK_ARGUMENTS) {
                      CCTK_Equals(thc_m1_test, "sphere")) {
                 for (int ig = 0; ig < ngroups*nspecies; ++ig) {
                     int const i4D = CCTK_VectGFIndex3D(cctkGH, i, j, k, ig);
-                    rE[i4D] = 0.0;
-                    rN[i4D] = 0.0;
+                    //rE[i4D] = 0.0;
+                    //rN[i4D] = 0.0;
+                    rE[i4D] = rad_E_floor;
+                    rN[i4D] = rad_N_floor;
                     rFx[i4D] = 0.0;
                     rFy[i4D] = 0.0;
                     rFz[i4D] = 0.0;

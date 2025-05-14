@@ -10,13 +10,22 @@ EXTENDS KEYWORD initial_Y_e "Y_e initial data"
     "THC_Initial" :: ""
 }
 
-SHARES: THC_Core
-USES BOOLEAN verbose
-
-SHARES: THC_Tracer
-USES INT ntracers
+#SHARES: THC_Core
+#USES BOOLEAN verbose
+#
+#SHARES: THC_Tracer
+#USES INT ntracers
 
 PRIVATE:
+
+BOOLEAN verbose "extra output"
+{
+} "no"
+
+INT ntracers "zero"
+{
+	0:* :: "Just set this to zero"
+} 0
 
 KEYWORD id_type "Initial data type"
 {

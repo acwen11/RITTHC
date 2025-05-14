@@ -59,8 +59,13 @@ extern "C" void THC_M1_KerrBCs(CCTK_ARGUMENTS) {
             //   g_xx a^2 + 2 a beta_x + [beta^2 - alp^2 (1 - eps)] = 0
             CCTK_REAL const eps = 0.01;
             CCTK_REAL const g_xx = g_dd(1,1);
-            CCTK_REAL const beta_x = beta_d(1);
-            CCTK_REAL const beta2 = tensor::dot(beta_u, beta_d);
+            // This was giving me NaNs for some reason so I'm just doin the contraction by hand
+            // CCTK_REAL const beta_x = beta_d(1);
+            // CCTK_REAL const beta2 = tensor::dot(beta_u, beta_d);
+            CCTK_REAL const beta_x = gxx[ijk] * betax[ijk] + gxy[ijk] * betay[ijk] + gxz[ijk] * betaz[ijk];
+            CCTK_REAL const beta_y = gxy[ijk] * betax[ijk] + gyy[ijk] * betay[ijk] + gyz[ijk] * betaz[ijk];
+            CCTK_REAL const beta_z = gxz[ijk] * betax[ijk] + gyz[ijk] * betay[ijk] + gzz[ijk] * betaz[ijk];
+            CCTK_REAL const beta2 = betax[ijk] * beta_x + betay[ijk] * beta_y + betaz[ijk] * beta_z;
             CCTK_REAL const a = (-beta_x + sqrt(SQ(beta_x) - beta2 +
                         SQ(alp[ijk])*(1 - eps)))/g_xx;
 

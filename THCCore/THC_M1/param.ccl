@@ -60,6 +60,11 @@ REAL m1_dis "Dissipation strength" STEERABLE=always
   *:* :: "0 for no dissipation.  Unstable for epsdis<0 and epsdis>1/3"
 } 0.2
 
+REAL diss_rE_cut "Apply dissipation below this value of rE" STEERABLE=always
+{
+  *:* :: "default high number implies dissipation is applied everywhere"
+} 1e100
+
 REAL closure_epsilon "Precision with which to find the closure" STEERABLE=ALWAYS
 {
     (0:* :: "Any positive number"

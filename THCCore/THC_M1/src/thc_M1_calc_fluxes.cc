@@ -352,10 +352,11 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                                        && k >= THC_M1_NGHOST
                                        && k <  cctk_lsh[2] - THC_M1_NGHOST);
                                 
-																// Apply dissipation
-																if (sawtooth) {
-                                		rhs[PINDEX1D(ig, iv)][ijk] -= m1_dis * idelta[dir] * (ujm - 2*uj + ujp);
-                                		// rhs[PINDEX1D(ig, iv)][ijk] += (m1_dis * idelta[dir] / 16) * (ujmm - 4*ujm + 6*uj - 4*ujp + ujpp);
+																// Apply dissipation in low energy regions
+																const CCTK_REAL rEloc = cons[GFINDEX1D(__k, ig, 4)];
+																if (sawtooth && rEloc < diss_rE_cut) {
+                                		// rhs[PINDEX1D(ig, iv)][ijk] -= m1_dis * idelta[dir] * (ujm - 2*uj + ujp);
+                                		rhs[PINDEX1D(ig, iv)][ijk] += (m1_dis * idelta[dir] / 16) * (ujmm - 4*ujm + 6*uj - 4*ujp + ujpp);
 																}
 
                                 assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));

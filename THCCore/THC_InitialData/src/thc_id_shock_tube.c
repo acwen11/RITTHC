@@ -165,6 +165,7 @@ void THC_ID_ShockTube(CCTK_ARGUMENTS) {
                         vely[ijk] = (velL - veltL) / sqrt(3.0);
                         velz[ijk] = (velL - veltL) / sqrt(3.0);
                         eps[ijk]  = epsL;
+                        press[ijk]  = pressL;
                         if(set_Y_e) {
                             Y_e[ijk]  = YeL;
                         }
@@ -178,6 +179,7 @@ void THC_ID_ShockTube(CCTK_ARGUMENTS) {
                         vely[ijk] = (velR - veltR) / sqrt(3.0);
                         velz[ijk] = (velR - veltR) / sqrt(3.0);
                         eps[ijk]  = epsR;
+                        press[ijk]  = pressR;
                         if(set_Y_e) {
                             Y_e[ijk]  = YeR;
                         }
@@ -216,6 +218,7 @@ void THC_ID_ShockTube(CCTK_ARGUMENTS) {
                             vely[ijk] = veltL;
                             velz[ijk] = 0;
                             eps[ijk]  = epsL;
+                        		press[ijk]  = pressL;
                             if(set_Y_e) {
                                 Y_e[ijk]  = YeL;
                             }
@@ -229,6 +232,7 @@ void THC_ID_ShockTube(CCTK_ARGUMENTS) {
                             vely[ijk] = veltR;
                             velz[ijk] = 0;
                             eps[ijk]  = epsR;
+                        		press[ijk]  = pressR;
                             if(set_Y_e) {
                                 Y_e[ijk]  = YeR;
                             }
