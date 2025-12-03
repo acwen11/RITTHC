@@ -155,6 +155,9 @@
       CCTK_REAL :: yl  ! total lepton mumber
       CCTK_REAL :: u   ! total internal energy (fluid + radiation)
 
+      INTEGER :: enforceTableBounds
+      INTEGER :: tabBoundsFlag
+
 !.....compute the total lepton fraction and internal energy
       yl = y_in(1) + y_in(2) - y_in(3)               ![#/baryon]
       u  = e_in(1) + e_in(2) + e_in(3) + e_in(4)     ![erg/cm^3]
@@ -200,7 +203,8 @@
 !.....make an initial guess............................................
         x0(1) = vec_guess(na,1)*T        ! T guess  [MeV]
         x0(2) = vec_guess(na,2)*y_in(1)  ! ye guess [#/baryon]
-
+        ! Guesses may push values out of table bounds
+        tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
 !.....call the 2d Newton-Raphson........................................
         call new_raph_2dim(rho,u,yl,x0,x1,ierr)
 
@@ -835,7 +839,7 @@
       tv = t1
       ltemp = log10(t-delta_t)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, t-delta_t, mu_e, mu_p, mu_n, muhat, xn, xp)
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
 
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
         eps_cu)
@@ -848,7 +852,7 @@
       tv = t2
       ltemp = log10(t+delta_t)
       call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, t+delta_t, mu_e, mu_p, mu_n, muhat, xn, xp)
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
 
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
         eps_cu)
