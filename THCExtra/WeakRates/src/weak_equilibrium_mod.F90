@@ -470,9 +470,6 @@
       ! if too many attempts have been performed, set ierr=1
       if (n_iter.le.n_max) then
         ierr = 0
-        ! !$omp critical
-        ! write(*,*)'weak eq NR iters = ', n_iter
-        ! !$omp end critical
       else
         ierr = 1
       end if
