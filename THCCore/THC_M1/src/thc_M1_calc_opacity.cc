@@ -142,41 +142,88 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                     rJ[CCTK_VectGFIndex3D(cctkGH, i, j, k, 1)]/volform,
                     rJ[CCTK_VectGFIndex3D(cctkGH, i, j, k, 2)]/volform,
                 };
-                ierr = WeakEquilibrium(
-                        rho[ijk], temperature[ijk], Y_e[ijk],
-                        nudens_0[0], nudens_0[1], nudens_0[2],
-                        nudens_1[0], nudens_1[1], nudens_1[2],
-                        &temperature_trap, &Y_e_trap,
-                        &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
-                        &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
-                if (ierr) {
-                    // Try to recompute the weak equilibrium using neglecting
-                    // current neutrino data
-                    ierr = WeakEquilibrium(
-                            rho[ijk], temperature[ijk], Y_e[ijk],
-                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                            &temperature_trap, &Y_e_trap,
-                            &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
-                            &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
-                    if (ierr) {
-                        ostringstream ss;
-                        ss << "Could not find the weak equilibrium!" << endl;
-                        ss << "Reflevel = " << ilogb(cctkGH->cctk_levfac[0]) << endl;
-                        ss << "Iteration = " << cctk_iteration << endl;
-                        ss << "(i, j, k) = (" << i << ", " << j << ", " << k << ")\n";
-                        ss << "(x, y, z) = (" << x[ijk] << ", " << y[ijk] << ", "
-                                              << z[ijk] << ")\n";
-                        ss << "rho = " << rho[ijk] << endl;
-                        ss << "temperature = " << temperature[ijk] << endl;
-                        ss << "Y_e = " << Y_e[ijk] << endl;
-                        ss << "alp = " << alp[ijk] << endl;
-                        ss << "nudens_0 = " << nudens_0[0] << " " << nudens_0[1]
-                                            << " " << nudens_0[2] << endl;
-                        ss << "nudens_1 = " << nudens_1[0] << " " << nudens_1[1]
-                                            << " " << nudens_1[2] << endl;
-                        Printer::print_warn(ss.str());
-                    }
-                }
+								CCTK_REAL const nueave_all = (nudens_1[0] + nudens_1[1] + nudens_1[2]) /
+												(nudens_0[0] + nudens_0[1] + nudens_0[2]);
+
+								// Standard case
+								if (nueave_all > 1e-9 && Y_e[ijk] > 0.0052) {
+									ierr = WeakEquilibrium(
+													rho[ijk], temperature[ijk], Y_e[ijk],
+													nudens_0[0], nudens_0[1], nudens_0[2],
+													nudens_1[0], nudens_1[1], nudens_1[2],
+													&temperature_trap, &Y_e_trap,
+													&nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
+													&nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
+									if (ierr) {
+											// if (nueave_all < 1e-8 && Y_e[ijk] < 0.0055) {
+											// 	CCTK_VINFO("WeakEq fail, IS flagged: %e %e %e %e %e %e %e %e %e", rho[ijk], temperature[ijk], Y_e[ijk],
+											// 										nudens_0[0], nudens_0[1], nudens_0[2], nudens_1[0], nudens_1[1], nudens_1[2]);
+											// }
+											// else {
+											// 	CCTK_VINFO("WeakEq fail, NOT flagged: %e %e %e %e %e %e %e %e %e", rho[ijk], temperature[ijk], Y_e[ijk],
+											// 										nudens_0[0], nudens_0[1], nudens_0[2], nudens_1[0], nudens_1[1], nudens_1[2]);
+											// }
+											CCTK_VINFO("Using WeakEq fallback! rho = %e; T = %e; Ye = %e", rho[ijk], temperature[ijk], Y_e[ijk]);
+											// Try to recompute the weak equilibrium using neglecting
+											// current neutrino data
+											ierr = WeakEquilibrium(
+															rho[ijk], temperature[ijk], Y_e[ijk],
+															0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+															&temperature_trap, &Y_e_trap,
+															&nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
+															&nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
+											if (ierr) {
+													ostringstream ss;
+													ss << "Could not find the weak equilibrium!" << endl;
+													ss << "Reflevel = " << ilogb(cctkGH->cctk_levfac[0]) << endl;
+													ss << "Iteration = " << cctk_iteration << endl;
+													ss << "(i, j, k) = (" << i << ", " << j << ", " << k << ")\n";
+													ss << "(x, y, z) = (" << x[ijk] << ", " << y[ijk] << ", "
+																								<< z[ijk] << ")\n";
+													ss << "rho = " << rho[ijk] << endl;
+													ss << "temperature = " << temperature[ijk] << endl;
+													ss << "Y_e = " << Y_e[ijk] << endl;
+													ss << "alp = " << alp[ijk] << endl;
+													ss << "nudens_0 = " << nudens_0[0] << " " << nudens_0[1]
+																							<< " " << nudens_0[2] << endl;
+													ss << "nudens_1 = " << nudens_1[0] << " " << nudens_1[1]
+																							<< " " << nudens_1[2] << endl;
+													Printer::print_warn(ss.str());
+											}
+									}
+								}
+								// Default to backup in problem case
+								else {
+									CCTK_VINFO("Using WeakEq fallback! rho = %e; T = %e; Ye = %e", rho[ijk], temperature[ijk], Y_e[ijk]);
+									ierr = WeakEquilibrium(
+													rho[ijk], temperature[ijk], Y_e[ijk],
+													0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+													&temperature_trap, &Y_e_trap,
+													&nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
+													&nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
+									if (ierr) {
+											ostringstream ss;
+											ss << "Could not find the weak equilibrium!" << endl;
+											ss << "Reflevel = " << ilogb(cctkGH->cctk_levfac[0]) << endl;
+											ss << "Iteration = " << cctk_iteration << endl;
+											ss << "(i, j, k) = (" << i << ", " << j << ", " << k << ")\n";
+											ss << "(x, y, z) = (" << x[ijk] << ", " << y[ijk] << ", "
+																						<< z[ijk] << ")\n";
+											ss << "rho = " << rho[ijk] << endl;
+											ss << "temperature = " << temperature[ijk] << endl;
+											ss << "Y_e = " << Y_e[ijk] << endl;
+											ss << "alp = " << alp[ijk] << endl;
+											ss << "nudens_0 = " << nudens_0[0] << " " << nudens_0[1]
+																					<< " " << nudens_0[2] << endl;
+											ss << "nudens_1 = " << nudens_1[0] << " " << nudens_1[1]
+																					<< " " << nudens_1[2] << endl;
+											Printer::print_warn(ss.str());
+									}
+								}
+								// else if (nueave_all < 1e-8 && Y_e[ijk] < 0.0055) {
+								// 		CCTK_VINFO("problematic point passed: %e %e %e %e %e %e %e %e %e", rho[ijk], temperature[ijk], Y_e[ijk],
+								// 											nudens_0[0], nudens_0[1], nudens_0[2], nudens_1[0], nudens_1[1], nudens_1[2]);
+								// }
                 assert(isfinite(nudens_0_trap[0]));
                 assert(isfinite(nudens_0_trap[1]));
                 assert(isfinite(nudens_0_trap[2]));

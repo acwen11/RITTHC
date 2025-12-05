@@ -365,6 +365,14 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
         y_eq, e_eq, na, ierr)
     ye_eq = y_eq(1)
 
+    ! !$omp critical
+    ! if (n_nue.ne.0.and.na.gt.3) then
+    !     write(*,*) "Weak Equilibrium took na = ", na
+    ! else if (n_nue.eq.0.and.n_nua.eq.0.and.na.gt.3) then
+    !     write(*,*) "Weak Equilibrium hack took na = ", na
+    ! end if
+    ! !$omp end critical
+
     if (ierr.ne.0) then
         WeakEquilibriumImpl = -1
     else

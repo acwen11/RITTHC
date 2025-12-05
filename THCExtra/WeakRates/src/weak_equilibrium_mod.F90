@@ -31,8 +31,8 @@
 !.....some parameters later used in the calculations....................
       CCTK_REAL, parameter :: eps_lim       = 1.e-7     ! standard tollerance in 2D NR
       integer  , parameter :: n_cut_max     = 8         ! number of bisections of dx
-      integer  , parameter :: n_max         = 100       ! Newton-Raphson max number of iterations
-      integer  , parameter :: n_at          = 16        ! number of independent initial guesses
+      integer  , parameter :: n_max         = 20 !100       ! Newton-Raphson max number of iterations
+      integer  , parameter :: n_at          = 6 !16        ! number of independent initial guesses
 
 !.....deltas to compute numerical derivatives in the EOS tables.........
       CCTK_REAL, parameter :: delta_ye = 0.005
@@ -170,22 +170,29 @@
 !     works already in most of the cases. The other ones are used as
 !     backups
 
+      !vec_guess(1,:)  = (/ 1.00e0, 1.00e0  /)
+      !vec_guess(2,:)  = (/ 0.90e0, 1.25e0  /)
+      !vec_guess(3,:)  = (/ 0.90e0, 1.10e0  /)
+      !vec_guess(4,:)  = (/ 0.90e0, 1.00e0  /)
+      !vec_guess(5,:)  = (/ 0.90e0, 0.90e0  /)
+      !vec_guess(6,:)  = (/ 0.90e0, 0.75e0  /)
+      !vec_guess(7,:)  = (/ 0.75e0, 1.25e0  /)
+      !vec_guess(8,:)  = (/ 0.75e0, 1.10e0  /)
+      !vec_guess(9,:)  = (/ 0.75e0, 1.00e0  /)
+      !vec_guess(10,:) = (/ 0.75e0, 0.90e0  /)
+      !vec_guess(11,:) = (/ 0.75e0, 0.75e0  /)
+      !vec_guess(12,:) = (/ 0.50e0, 1.25e0  /)
+      !vec_guess(13,:) = (/ 0.50e0, 1.10e0  /)
+      !vec_guess(14,:) = (/ 0.50e0, 1.00e0  /)
+      !vec_guess(15,:) = (/ 0.50e0, 0.90e0  /)
+      !vec_guess(16,:) = (/ 0.50e0, 0.75e0  /)
+
       vec_guess(1,:)  = (/ 1.00e0, 1.00e0  /)
-      vec_guess(2,:)  = (/ 0.90e0, 1.25e0  /)
-      vec_guess(3,:)  = (/ 0.90e0, 1.10e0  /)
-      vec_guess(4,:)  = (/ 0.90e0, 1.00e0  /)
-      vec_guess(5,:)  = (/ 0.90e0, 0.90e0  /)
-      vec_guess(6,:)  = (/ 0.90e0, 0.75e0  /)
-      vec_guess(7,:)  = (/ 0.75e0, 1.25e0  /)
-      vec_guess(8,:)  = (/ 0.75e0, 1.10e0  /)
-      vec_guess(9,:)  = (/ 0.75e0, 1.00e0  /)
-      vec_guess(10,:) = (/ 0.75e0, 0.90e0  /)
-      vec_guess(11,:) = (/ 0.75e0, 0.75e0  /)
-      vec_guess(12,:) = (/ 0.50e0, 1.25e0  /)
-      vec_guess(13,:) = (/ 0.50e0, 1.10e0  /)
-      vec_guess(14,:) = (/ 0.50e0, 1.00e0  /)
-      vec_guess(15,:) = (/ 0.50e0, 0.90e0  /)
-      vec_guess(16,:) = (/ 0.50e0, 0.75e0  /)
+      vec_guess(2,:)  = (/ 0.90e0, 1.10e0  /)
+      vec_guess(3,:)  = (/ 0.90e0, 0.90e0  /)
+      vec_guess(4,:)  = (/ 0.75e0, 1.25e0  /)
+      vec_guess(5,:)  = (/ 0.75e0, 1.00e0  /)
+      vec_guess(6,:)  = (/ 0.75e0, 0.75e0  /)
 
       na = 0      ! counter for the number of attempts
 
@@ -463,6 +470,9 @@
       ! if too many attempts have been performed, set ierr=1
       if (n_iter.le.n_max) then
         ierr = 0
+        ! !$omp critical
+        ! write(*,*)'weak eq NR iters = ', n_iter
+        ! !$omp end critical
       else
         ierr = 1
       end if
