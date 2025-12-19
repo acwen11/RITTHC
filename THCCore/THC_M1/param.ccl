@@ -220,6 +220,10 @@ REAL equilibrium_rho_min "Set to equilibrium only if the density is larger than 
 ###############################################################################
 # Numerical settings
 ###############################################################################
+BOOLEAN ID_from_ReadInterpolate "Load ID from file"
+{
+} "no"
+
 BOOLEAN copy_levels "Fill past timelevels after initial data"
 {
 } "yes"

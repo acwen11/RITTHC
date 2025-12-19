@@ -54,11 +54,13 @@ SCHEDULE THC_M1_SetSym AT CCTK_BASEGRID
     OPTIONS: GLOBAL
 } "Setup symmetries"
 
-SCHEDULE THC_M1_Reset AT CCTK_INITIAL \
-    BEFORE (THC_M1_InitialData ReadInterpolate_ReadData)
-{
-    LANG: C
-} "Initialize everything to zero"
+if (!ID_from_ReadInterpolate || set_to_equilibrium) {
+	SCHEDULE THC_M1_Reset AT CCTK_INITIAL \
+			BEFORE (THC_M1_InitialData ReadInterpolate_ReadData)
+	{
+			LANG: C
+	} "Initialize everything to zero"
+}
 
 SCHEDULE THC_M1_FiducialVelocity AT CCTK_INITIAL AFTER (HydroBase_Prim2ConInitial IllinoisGRMHD_ID_Converter)
 {
@@ -98,6 +100,18 @@ if (set_to_equilibrium) {
 }
 
 if (reset_to_equilibrium) {
+    SCHEDULE IllinoisGRMHD_conserv_to_prims AT CCTK_POST_RECOVER_VARIABLES BEFORE THC_M1_Reset
+    {
+        LANG: C
+    } "Computes the primitives from the conservatives. Excessive, this is just to call IGM's ADM->BSSN conversion"
+
+		schedule IllinoisGRMHD_outer_boundaries_on_P_rho_b_vx_vy_vz AT CCTK_POST_RECOVER_VARIABLES AFTER IllinoisGRMHD_conserv_to_prims
+		{
+				# We must sync {P,rho_b,vx,vy,vz} here.
+				SYNC: grmhd_primitives_scalar,grmhd_primitives_vector
+				LANG: C
+		} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+
     SCHEDULE THC_M1_Reset AT CCTK_POST_RECOVER_VARIABLES
     {
         LANG: C
@@ -115,13 +129,19 @@ if (reset_to_equilibrium) {
         LANG: C
     } "Set radiation quantities to equilibrium"
 
-    if (copy_levels) {
-        SCHEDULE THC_M1_CopyLevels AT CCTK_POST_RECOVER_VARIABLES \
-            AFTER THC_M1_SetToEquilibrium
-        {
-            LANG: C
-        } "Copy data to past timelevels"
-    }
+		SCHEDULE THC_M1_CopyLevels AT CCTK_POST_RECOVER_VARIABLES \
+				AFTER THC_M1_SetToEquilibrium
+		{
+				LANG: C
+		} "Copy data to past timelevels"
+
+    # if (copy_levels) {
+    #     SCHEDULE THC_M1_CopyLevels AT CCTK_POST_RECOVER_VARIABLES \
+    #         AFTER THC_M1_SetToEquilibrium
+    #     {
+    #         LANG: C
+    #     } "Copy data to past timelevels"
+    # }
 }
 
 ###############################################################################
