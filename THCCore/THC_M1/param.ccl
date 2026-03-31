@@ -20,6 +20,10 @@ SHARES: HydroBase
 USES INT hydro_excision
 USES KEYWORD evolution_method
 
+SHARES: SphericalSurface
+USES CCTK_INT maxnphi
+USES CCTK_INT maxntheta
+
 RESTRICTED:
 
 BOOLEAN verbose "Print more debug statements" STEERABLE=ALWAYS
@@ -247,6 +251,20 @@ INT timelevels "Number of timelevels to activate"
 {
     2:3 :: "At least two timelevels are needed"
 } 3
+
+BOOLEAN m1_excision "Mask M1 quantities inside horizon" STEERABLE=ALWAYS
+{
+} "no"
+
+CCTK_INT excision_surface "Index of the surface to use for excision" STEERABLE=recover
+{
+    0:* :: "Any valid SphericalSurface index"
+} 0
+
+CCTK_REAL excision_margin "Enlarge/shrink the excision region by the given safety margin" STEERABLE=always
+{
+    (0.0:* :: "Any positive number"
+} 1.0
 
 ###############################################################################
 # Tests
