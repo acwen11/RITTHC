@@ -1,4 +1,2 @@
 # RITTHC
-Private version of the THC code by David Radice containing M1 neutrino transport implementation. 
-
-NOTE: Since this was privately shared by David with our group, the code must not be made public or redistributed.
+Modifications to make THC_LeakageBase, THC_M1, and WeakRates compatible with RITIGM.
