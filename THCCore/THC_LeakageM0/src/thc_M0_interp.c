@@ -68,6 +68,13 @@ void THC_M0_InterpToSph(CCTK_ARGUMENTS) {
 
     void const * interp_coords[] = {thc_M0_x, thc_M0_y, thc_M0_z};
     int const npoints = group_data.ash[0]*group_data.ash[1];
+
+		// THC uses zvec = W v^i. 
+		double *velx_temp = (double *)malloc(sizeof(double)*npoints);
+		double *vely_temp = (double *)malloc(sizeof(double)*npoints);
+		double *velz_temp = (double *)malloc(sizeof(double)*npoints);
+		double *Wl_temp = (double *)malloc(sizeof(double)*npoints);
+
     CCTK_INT const input_array_indices[] = {
         CCTK_VarIndex("ADMBase::alp"),
         CCTK_VarIndex("ADMBase::betax"),
@@ -82,9 +89,10 @@ void THC_M0_InterpToSph(CCTK_ARGUMENTS) {
         CCTK_VarIndex("HydroBase::rho"),
         CCTK_VarIndex("HydroBase::temperature"),
         CCTK_VarIndex("HydroBase::Y_e"),
-        CCTK_VarIndex("THC_Core::zvec[0]"),
-        CCTK_VarIndex("THC_Core::zvec[1]"),
-        CCTK_VarIndex("THC_Core::zvec[2]"),
+        CCTK_VarIndex("HydroBase::vel[0]"),
+        CCTK_VarIndex("HydroBase::vel[1]"),
+        CCTK_VarIndex("HydroBase::vel[2]"),
+        CCTK_VarIndex("HydroBase::w_lorentz"),
         CCTK_VarIndex("THC_LeakageBase::optd_0_nue"),
         CCTK_VarIndex("THC_LeakageBase::optd_0_nua"),
         CCTK_VarIndex("THC_LeakageBase::optd_0_nux"),
@@ -95,6 +103,7 @@ void THC_M0_InterpToSph(CCTK_ARGUMENTS) {
     int const ninputs = length(input_array_indices);
 
     CCTK_INT const output_array_types[] = {
+        CCTK_VARIABLE_REAL,
         CCTK_VARIABLE_REAL,
         CCTK_VARIABLE_REAL,
         CCTK_VARIABLE_REAL,
@@ -134,9 +143,10 @@ void THC_M0_InterpToSph(CCTK_ARGUMENTS) {
         thc_M0_rho,
         thc_M0_temp,
         thc_M0_Y_e,
-        thc_M0_zvecx,
-        thc_M0_zvecy,
-        thc_M0_zvecz,
+				velx_temp,
+				vely_temp,
+				velz_temp,
+				Wl_temp,
         thc_M0_optd_0_nue,
         thc_M0_optd_0_nua,
         thc_M0_optd_0_nux,
@@ -151,6 +161,17 @@ void THC_M0_InterpToSph(CCTK_ARGUMENTS) {
             input_array_indices, ninputs, output_array_types, output_arrays);
     assert(!ierr);
 
+#pragma omp parallel for
+		for (int ii=0; ii<npoints; ii++){
+				thc_M0_zvecx[ii] = Wl_temp[ii] * velx_temp[ii];
+				thc_M0_zvecy[ii] = Wl_temp[ii] * vely_temp[ii];
+				thc_M0_zvecz[ii] = Wl_temp[ii] * velz_temp[ii];
+		}
+
+		free(velx_temp);
+		free(vely_temp);
+		free(velz_temp);
+		free(Wl_temp);
     Util_TableDestroy(options_handle);
 }
 

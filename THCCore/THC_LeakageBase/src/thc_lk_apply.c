@@ -54,10 +54,6 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
     CCTK_REAL const * vely = &vel[1*siz];
     CCTK_REAL const * velz = &vel[2*siz];
 
-    CCTK_REAL * sconx = &scon[0*siz];
-    CCTK_REAL * scony = &scon[1*siz];
-    CCTK_REAL * sconz = &scon[2*siz];
-
     CCTK_REAL const mb = AverageBaryonMass();
 
     CCTK_REAL const dt = CCTK_DELTA_TIME;
@@ -82,6 +78,8 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
                 assert(isfinite(abs_number[ijk]));
                 assert(isfinite(abs_energy[ijk]));
 
+                double volform = pow(psi_bssn[ijk], 6);
+
                 /* Total lepton number / energy absorption (emission) */
                 CCTK_REAL const R = abs_number[ijk] -
                     mb*(R_eff_nue[ijk] - R_eff_nua[ijk]);
@@ -91,25 +89,23 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
                 assert(isfinite(Q));
 
                 /* Compute RHS */
-                CCTK_REAL const densxp_dot = alp[ijk] * volform[ijk] * R;
-                CCTK_REAL const sconx_dot = alp[ijk] * volform[ijk] *
+                CCTK_REAL const densxp_dot = alp[ijk] * volform * R;
+                CCTK_REAL const sconx_dot = alp[ijk] * volform *
                     w_lorentz[ijk] * v_x * Q;
-                CCTK_REAL const scony_dot = alp[ijk] * volform[ijk] *
+                CCTK_REAL const scony_dot = alp[ijk] * volform *
                     w_lorentz[ijk] * v_y * Q;
-                CCTK_REAL const sconz_dot = alp[ijk] * volform[ijk] *
+                CCTK_REAL const sconz_dot = alp[ijk] * volform *
                     w_lorentz[ijk] * v_z * Q;
-                CCTK_REAL const tau_dot = alp[ijk] * volform[ijk] *
+                CCTK_REAL const tau_dot = alp[ijk] * volform *
                     w_lorentz[ijk] * Q;
 
                 /* Update composition */
-                CCTK_REAL const dens_tot = densxp[ijk] + densxn[ijk];
-                densxp[ijk] = densxp[ijk] / (1.0 - densxp_dot/densxp[ijk] * dt);
-                densxn[ijk] = dens_tot - densxp[ijk];
+                Ye_star[ijk] = Ye_star[ijk] / (1.0 - densxp_dot/Ye_star[ijk] * dt);
 
                 /* Update momentum */
-                sconx[ijk] = sconx[ijk] + dt * sconx_dot;
-                scony[ijk] = scony[ijk] + dt * scony_dot;
-                sconz[ijk] = sconz[ijk] + dt * sconz_dot;
+                mhd_st_x[ijk] = mhd_st_x[ijk] + dt * sconx_dot;
+                mhd_st_y[ijk] = mhd_st_y[ijk] + dt * scony_dot;
+                mhd_st_z[ijk] = mhd_st_z[ijk] + dt * sconz_dot;
 
                 /* Update the energy */
                 tau[ijk] = tau[ijk] / (1.0 - tau_dot/tau[ijk] * dt);
@@ -117,11 +113,11 @@ void THC_LK_Apply(CCTK_ARGUMENTS) {
                 /* Store luminosity on the volume */
                 if(store_neu_luminosity) {
                     luminosity_nue[ijk] = alp[ijk] *
-                      alp[ijk] * volform[ijk] * w_lorentz[ijk] * Q_eff_nue[ijk];
+                      alp[ijk] * volform * w_lorentz[ijk] * Q_eff_nue[ijk];
                     luminosity_nua[ijk] = alp[ijk] *
-                      alp[ijk] * volform[ijk] * w_lorentz[ijk] * Q_eff_nua[ijk];
+                      alp[ijk] * volform * w_lorentz[ijk] * Q_eff_nua[ijk];
                     luminosity_nux[ijk] = alp[ijk] *
-                      alp[ijk] * volform[ijk] * w_lorentz[ijk] * Q_eff_nux[ijk];
+                      alp[ijk] * volform * w_lorentz[ijk] * Q_eff_nux[ijk];
                 }
             }
         } UTILS_ENDLOOP3(thc_lk_apply);

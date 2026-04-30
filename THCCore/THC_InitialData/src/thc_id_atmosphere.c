@@ -50,6 +50,8 @@ void THC_ID_Atmosphere(CCTK_ARGUMENTS) {
             vely[ijk] = 0.0;
             velz[ijk] = 0.0;
             eps[ijk]  = 0.0;
+            press[ijk]  = 0.0;
+            temperature[ijk]  = 0.0;
             if (set_Y_e) {
                 Y_e[ijk] = 0.0;
             }

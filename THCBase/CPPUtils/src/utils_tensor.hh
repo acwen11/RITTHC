@@ -19,6 +19,7 @@
 #define UTILS_TENSOR_HH
 
 #include <algorithm>
+#include <cmath>
 
 #include <cctk.h>
 
@@ -711,7 +712,7 @@ class slicing_geometry_const {
                 CCTK_REAL const * kyy,
                 CCTK_REAL const * kyz,
                 CCTK_REAL const * kzz,
-                CCTK_REAL const * volform) {
+                CCTK_REAL const * psi_bssn) {
             m_data[0]  = alp;
             m_data[1]  = betax;
             m_data[2]  = betay;
@@ -728,7 +729,7 @@ class slicing_geometry_const {
             m_data[13] = kyy;
             m_data[14] = kyz;
             m_data[15] = kzz;
-            m_data[16] = volform;
+            m_data[16] = psi_bssn;
 #ifdef CPPUTILS_DEBUG
             for(int i = 0; i < 16; ++i) {
                 assert(m_data[i]);
@@ -794,7 +795,7 @@ class slicing_geometry_const {
                 inv_metric<3> * u) const {
             u->from_metric(m_data[4][ijk], m_data[5][ijk], m_data[6][ijk],
                     m_data[7][ijk], m_data[8][ijk], m_data[9][ijk],
-                    m_data[16][ijk]*m_data[16][ijk]);
+                    std::pow(m_data[16][ijk]*m_data[16][ijk], 6));
         }
 
         //! \brief Get the projector onto the spacelike hypersurface:

@@ -28,6 +28,29 @@ extern "C" void THC_M1_InitTimeIntegrator(CCTK_ARGUMENTS) {
     }
 
     *TimeIntegratorStage = 2;
+		*M1_OriginalTime = cctkGH->cctk_time;
+		cctkGH->cctk_time -= cctkGH->cctk_delta_time / cctkGH->cctk_timefac;
+}
+
+extern "C" void THC_M1_UpdateTime(CCTK_ARGUMENTS) {
+    DECLARE_CCTK_ARGUMENTS
+    DECLARE_CCTK_PARAMETERS
+
+    if (verbose) {
+        CCTK_INFO("THC_M1_UpdateTime");
+    }
+
+    if (*TimeIntegratorStage == 1) {
+			CCTK_REAL dt = cctkGH->cctk_delta_time / cctkGH->cctk_timefac;
+			cctkGH->cctk_time = *M1_OriginalTime - (dt / 2);
+		}
+    else if (*TimeIntegratorStage == 0) {
+			cctkGH->cctk_time = *M1_OriginalTime;
+		}
+
+    if (verbose) {
+			CCTK_VINFO("Integrated to time %e", cctkGH->cctk_time);
+    }
 }
 
 extern "C" void THC_M1_FinalizeTimeIntegrator(CCTK_ARGUMENTS) {

@@ -88,7 +88,7 @@ END FUNCTION NeutrinoEmissionImpl
 CCTK_INT FUNCTION NeutrinoOpacityImpl(rho, temp, ye, &
                                       kappa_0_nue, kappa_0_nua, kappa_0_nux, &
                                       kappa_1_nue, kappa_1_nua, kappa_1_nux)
-    use table3d_mod
+    ! use table3d_mod
     use units
     implicit none
     DECLARE_CCTK_PARAMETERS
@@ -159,7 +159,7 @@ END FUNCTION NeutrinoOpacityImpl
 CCTK_INT FUNCTION NeutrinoAbsorptionRateImpl(rho, temp, ye,&
                               kappa_0_nue, kappa_0_nua, kappa_0_nux, &
                               kappa_1_nue, kappa_1_nua, kappa_1_nux)
-    use table3d_mod
+    ! use table3d_mod
     use units
     IMPLICIT NONE
     DECLARE_CCTK_PARAMETERS
@@ -227,7 +227,7 @@ END FUNCTION NeutrinoAbsorptionRateImpl
 
 CCTK_INT FUNCTION NeutrinoDensityImpl(rho, temp, ye,&
                                 n_nue, n_nua, n_nux, en_nue, en_nua, en_nux)
-    use table3d_mod
+    ! use table3d_mod
     use units
 
     implicit none
@@ -290,7 +290,7 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
         n_nue, n_nua, n_nux, en_nue, en_nua, en_nux, &
         temp_eq, ye_eq, &
         n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq)
-    use table3d_mod
+    ! use table3d_mod
     use units
     use weak_equilibrium_mod
 
@@ -305,6 +305,8 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
 
     CCTK_REAL :: rho0, temp0, ye0, eps0
     CCTK_REAL :: mb, AtomicMassImpl, nb
+    ! Dummy var for EOS call
+    CCTK_REAL :: press
 
     INTEGER :: enforceTableBounds
     INTEGER :: ierr, na, boundsErr
@@ -350,7 +352,9 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     y_in(4) = 0.25*n_nux/nb
 
     ! Compute energy (note that tab3d_eps works in Cactus units)
-    eps0 = tab3d_eps(rho0/cactus2cgsRho, temp, ye)*cactus2cgsEps
+    call WVU_EOS_P_and_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, press, &
+      eps0)
+    eps0 = eps0 * cactus2cgsEps
     e_in(1) = rho0*(clight*clight + eps0)
     e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
     e_in(3) = en_nua*(cgs2cactusLength**3/cgs2cactusEnergy)

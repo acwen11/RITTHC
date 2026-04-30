@@ -586,7 +586,7 @@ class GNIGrid {
                     ppoint[d] = origin[d] + delta[d];
                 }
                 else {
-                    point[d] = end[d] - delta[d];
+                    ppoint[d] = end[d] - delta[d];
                 }
             }
         }

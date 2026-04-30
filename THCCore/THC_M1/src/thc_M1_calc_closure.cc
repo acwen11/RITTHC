@@ -24,6 +24,7 @@
 #include "thc_printer.hh"
 #include "utils.hh"
 #include "thc_M1_closure.hh"
+#include "WVU_EOS_Tabulated_headers.hh"
 
 using namespace utils;
 using namespace std;
@@ -40,18 +41,18 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
     // Disable GSL error handler
     gsl_error_handler_t * gsl_err = gsl_set_error_handler_off();
 
-    closure_t closure_fun;
+    closure_t closure_default;
     if (CCTK_Equals(closure, "Eddington")) {
-        closure_fun = eddington;
+        closure_default = eddington;
     }
     else if (CCTK_Equals(closure, "Kershaw")) {
-        closure_fun = kershaw;
+        closure_default = kershaw;
     }
     else if (CCTK_Equals(closure, "Minerbo")) {
-        closure_fun = minerbo;
+        closure_default = minerbo;
     }
     else if (CCTK_Equals(closure, "thin")) {
-        closure_fun = thin;
+        closure_default = thin;
     }
     else {
         char msg[BUFSIZ];
@@ -67,7 +68,7 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
             m1_max_num_msg, m1_max_num_msg);
 
     tensor::slicing_geometry_const geom(alp, betax, betay, betaz, gxx, gxy, gxz,
-            gyy, gyz, gzz, kxx, kxy, kxz, kyy, kyz, kzz, volform);
+            gyy, gyz, gzz, kxx, kxy, kxz, kyy, kyz, kzz, psi_bssn);
     tensor::fluid_velocity_field_const fidu(alp, betax, betay, betaz, fidu_w_lorentz,
             fidu_velx, fidu_vely, fidu_velz);
 
@@ -98,6 +99,20 @@ extern "C" void THC_M1_CalcClosure(CCTK_ARGUMENTS) {
                 }
                 continue;
             }
+
+						// Switch to optically thin closure in the atmosphere
+						closure_t closure_fun;
+						if (closure_thin_atmo) {
+							CCTK_REAL xrho    = rho[ijk];
+							const CCTK_REAL r_atmo     = max(r_atmo_min, r[ijk]);
+							const CCTK_REAL r_pow      = atmo_falloff ? r_power : 0.;
+							const CCTK_REAL rho_atm    = max(rho_b_atm_max*pow(r_atmo / r_atmo_min, r_pow), nuc_eos::eos_rhomin);
+
+							closure_fun = (xrho < rho_atm * (1 + atmo_tol)) ? thin : closure_default;
+						}
+						else {
+							closure_fun = closure_default;
+						}
 
             tensor::metric<4> g_dd;
             tensor::inv_metric<4> g_uu;

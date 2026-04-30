@@ -73,7 +73,10 @@ class Units:
 #
 
 # Other constants
-UAMU_MEV      = 931.494061
+# UAMU_MEV      = 931.494061
+UAMU_MEV      = 930.1758517947271 # USING APR4 mineps0 ADJUSTED MASS
+# UAMU_MEV      = 930.17637269 # USING LS220new mineps0 ADJUSTED MASS
+# UAMU_MEV      = 939.56542052 # USING NEUTRON MASS
 
 # The following constants are all given in CGS units
 FM_CGS        = 1.0e-13               # Fentometer

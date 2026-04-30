@@ -1,5 +1,27 @@
 # Interface definition for thorn THC_InitialData
 IMPLEMENTS:     THC_InitialData
-INHERITS:       HydroBase, Grid, THC_Tracer
+INHERITS:       HydroBase, Grid, IllinoisGRMHD #, THC_Tracer
 
+# uses include header: IllinoisGRMHD_headers.h
 USES INCLUDE: utils_macro.h
+
+CCTK_REAL tracer[ntracers] TYPE=GF TIMELEVELS=3 TAGS='ProlongationParameter="HydroBase::prolongation_type" tensortypealias="Scalar" tensorweight=+0.0 interpolator="matter"'  "Dummy"
+
+# EOS Calls for Hydro ID in Tests
+CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
+
+USES FUNCTION EOS_Omni_GetHandle
+
+void FUNCTION EOS_Omni_press(CCTK_INT IN eoskey,         \
+		CCTK_INT IN havetemp,       \
+		CCTK_REAL IN rf_precision,  \
+		CCTK_INT IN npoints,        \
+		CCTK_REAL IN ARRAY rho,     \
+		CCTK_REAL INOUT ARRAY eps,  \
+		CCTK_REAL INOUT ARRAY temp, \
+		CCTK_REAL IN ARRAY ye,      \
+		CCTK_REAL OUT ARRAY press,  \
+		CCTK_INT OUT ARRAY keyerr,  \
+		CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_press

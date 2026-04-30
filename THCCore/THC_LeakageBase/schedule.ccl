@@ -28,13 +28,14 @@ SCHEDULE THC_LK_SetSym AT CCTK_BASEGRID
 
 # Here we assume that nobody else is evolving hydro so we register HydroBase
 # variables as save and restore
-if(!CCTK_Equals(evolution_method, "THCode")) {
-    SCHEDULE THC_LK_MoLRegister IN MoL_Register
-    {
-        LANG: C
-        OPTIONS: GLOBAL
-    } "Register variables with MoL"
-}
+# TODO: Make sure this is consistent with IGM
+# if(!CCTK_Equals(evolution_method, "THCode")) {
+#     SCHEDULE THC_LK_MoLRegister IN MoL_Register
+#     {
+#         LANG: C
+#         OPTIONS: GLOBAL
+#     } "Register variables with MoL"
+# }
 
 SCHEDULE THC_LK_InitData AT CCTK_INITIAL
 {
@@ -170,17 +171,29 @@ SCHEDULE GROUP THC_LK_ApplyGroup AT CCTK_EVOL \
 {
 } "Apply the leakage sources to the hydro RHS"
 
-if(CCTK_Equals(evolution_method, "THCode")) {
-    SCHEDULE THC_LK_Apply IN THC_LK_ApplyGroup
-    {
-        LANG: C
-    } "Add the contribution of the leakage to the hydro RHS"
+# if(CCTK_Equals(evolution_method, "THCode")) {
+#     SCHEDULE THC_LK_Apply IN THC_LK_ApplyGroup
+#     {
+#         LANG: C
+#     } "Add the contribution of the leakage to the hydro RHS"
+# 
+#     SCHEDULE THC_ConsToAll IN THC_LK_ApplyGroup AFTER THC_LK_Apply
+#     {
+#         LANG: C
+#     } "Computes the primitives from the conservatives"
+# }
 
-    SCHEDULE THC_ConsToAll IN THC_LK_ApplyGroup AFTER THC_LK_Apply
-    {
-        LANG: C
-    } "Computes the primitives from the conservatives"
-}
+# IGM Version
+SCHEDULE THC_LK_Apply IN THC_LK_ApplyGroup
+{
+    LANG: C
+} "Add the contribution of the leakage to the hydro RHS"
+
+SCHEDULE IllinoisGRMHD_conserv_to_prims IN THC_LK_ApplyGroup AFTER THC_LK_Apply
+{
+    LANG: C
+} "Computes the primitives from the conservatives"
+
 # -----------------------------------------------------------------------------
 ###############################################################################
 

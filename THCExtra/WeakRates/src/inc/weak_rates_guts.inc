@@ -13,16 +13,9 @@
        nb = rho / mass_fact_cgs
 
       !Interpolate the chemical potentials (stored in MeV in the table)
-       mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-       mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-       mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
-
       !Interpolate the fractions
-       abar = lkLinearInterpolation3d(lrho, ltemp, ye, ABAR)
-       zbar = lkLinearInterpolation3d(lrho, ltemp, ye, ZBAR)
-       xp   = lkLinearInterpolation3d(lrho, ltemp, ye, XP)
-       xn   = lkLinearInterpolation3d(lrho, ltemp, ye, XN)
-       xh   = lkLinearInterpolation3d(lrho, ltemp, ye, XH)
+			! ! ! This func wants rho in CU, T in MeV
+		   call WVU_EOS_THC_WeakRates_from_rho_Ye_T(rho * cgs2cactusRho, ye, temp, mu_e, mu_p, mu_n, xn, xp, xh, abar, zbar);	
 
       !Compute the neutrino degeneracy assuming that neutrons and
       !protons chemical potentials DO NOT include the rest mass density

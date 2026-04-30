@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-amu_cgs       = 1.66053873e-24
+amu_cgs       = 1.658189e-24 # APRLDP value
+#amu_cgs       = 1.67492749804e-24 # USING NEUTRON MASS
 c_cgs         = 29979245800.0
 fermi_cgs     = 1.e-13
 kb_cgs        = 1.3806488e-23

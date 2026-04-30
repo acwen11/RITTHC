@@ -81,7 +81,7 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
 
     // Tensor fields
     tensor::slicing_geometry_const geom(alp, betax, betay, betaz, gxx, gxy, gxz,
-            gyy, gyz, gzz, kxx, kxy, kxz, kyy, kyz, kzz, volform);
+            gyy, gyz, gzz, kxx, kxy, kxz, kyy, kyz, kzz, psi_bssn);
     tensor::fluid_velocity_field_const fidu(alp, betax, betay, betaz, fidu_w_lorentz,
             fidu_velx, fidu_vely, fidu_velz);
 
@@ -272,6 +272,7 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                         // become larger than c
                         cmax[GFINDEX1D(__k, ig, 0)] = clight;
                                                  // = std::min(clight, cM1);
+                                                 //
                     }
                 }
 
@@ -281,7 +282,8 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
 
                 // ----------------------------------------------
                 // 2nd pass update the RHS
-                for (__k = THC_M1_NGHOST-1; __k < lsh[2]-THC_M1_NGHOST; ++__k) {
+                //for (__k = THC_M1_NGHOST-1; __k < lsh[2]-THC_M1_NGHOST; ++__k) {
+                for (__k = THC_M1_NGHOST; __k < lsh[2]-THC_M1_NGHOST; ++__k) {
                     index[0] = __i;
                     index[1] = __j;
                     index[2] = __k;
@@ -303,6 +305,7 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                         }
 
                         for (int iv = 0; iv < 5; ++iv) {
+                            CCTK_REAL const ujmm = cons[GFINDEX1D(__k-2, ig, iv)];
                             CCTK_REAL const ujm = cons[GFINDEX1D(__k-1, ig, iv)];
                             CCTK_REAL const uj = cons[GFINDEX1D(__k, ig, iv)];
                             CCTK_REAL const ujp = cons[GFINDEX1D(__k+1, ig, iv)];
@@ -348,6 +351,14 @@ extern "C" void THC_M1_CalcFluxes(CCTK_ARGUMENTS) {
                                        && j <  cctk_lsh[1] - THC_M1_NGHOST
                                        && k >= THC_M1_NGHOST
                                        && k <  cctk_lsh[2] - THC_M1_NGHOST);
+                                
+																// Apply dissipation in low energy regions
+																const CCTK_REAL rEloc = cons[GFINDEX1D(__k, ig, 4)];
+																if (sawtooth && rEloc < diss_rE_cut) {
+                                		// rhs[PINDEX1D(ig, iv)][ijk] -= m1_dis * idelta[dir] * (ujm - 2*uj + ujp);
+                                		rhs[PINDEX1D(ig, iv)][ijk] += (m1_dis * idelta[dir] / 16) * (ujmm - 4*ujm + 6*uj - 4*ujp + ujpp);
+																}
+
                                 assert(isfinite(rhs[PINDEX1D(ig, iv)][ijk]));
                             }
                         }

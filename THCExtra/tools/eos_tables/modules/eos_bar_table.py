@@ -111,7 +111,7 @@ class EOS_Table(object):
     at the lowest tabulated density must be given.
     """
     ig    = p / (rmd**2)
-    sed   = sint.cumtrapz(ig, rmd)
+    sed   = sint.cumulative_trapezoid(ig, rmd)
     sed   = hstack([[0], sed])
     sed  += sed0
     return sed
@@ -121,6 +121,9 @@ class EOS_Table(object):
     ed        = (1.0 + sed) * rmd
     p_from_ed = cubic_spline(ed, p, self.order)
     cs2       = p_from_ed(ed, nu=1)
+    for ii in range(len(cs2)):
+        if cs2[ii] < 0:
+            cs2[ii] = 0
     if (any(cs2 < 0)):
       self._resist('Soundspeed computation failed: d(pressure)/d(energy density) < 0')
     #
@@ -128,7 +131,7 @@ class EOS_Table(object):
   #
   def _compute_gm1(self, ed, P, gm1_0):
     a     = 1.0/(ed + P)
-    z     = sint.cumtrapz(a, P)
+    z     = sint.cumulative_trapezoid(a, P)
     z     = hstack([[0],z])
     gm1   = gm1_0 + (1.0+gm1_0)*expm1(z)
     return gm1
@@ -769,6 +772,12 @@ def sample_eos(eos, rmd_new, mbar=None, order=3):
   csnd_new  = getattr(eos, 'csnd_from_rmd', niente)(rmd_new)
   efr_new   = getattr(eos, 'efr_from_rmd', niente)(rmd_new)
   temp_new  = getattr(eos, 'temp_from_rmd', niente)(rmd_new)
+
+  # Electron Fraction Hack
+  print("SETTING NEGATIVE Y_e TO ZERO AS THIS IS NOT NEEDED FOR LORENE. PROCEED WITH CAUTION")
+  for ii, ye in enumerate(efr_new):
+    if ye < 0:
+      efr_new[ii] = 0
 
   return EOS_Table(rmd_new, sed_new, p_new, isentropic=eos.isentropic,
                     csnd=csnd_new, efr=efr_new, temp=temp_new, mbar=mbar, order=order)

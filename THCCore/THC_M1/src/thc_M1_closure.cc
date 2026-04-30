@@ -284,11 +284,30 @@ void calc_proj(
     }
 }
 
+void calc_Patmo(
+        tensor::inv_metric<4> const & g_uu,
+        CCTK_REAL const E,
+        tensor::generic<CCTK_REAL, 4, 1> const & F_d,
+        tensor::symmetric2<CCTK_REAL, 4, 2> * P_dd) {
+    DECLARE_CCTK_PARAMETERS;
+    CCTK_REAL const F2 = tensor::dot(g_uu, F_d, F_d);
+    //CCTK_REAL fac = (F2 > 0 ? (E - rad_E_floor)/F2 : 0);
+    // 0.01 is fudge factor = something / dt**2
+    // CCTK_REAL F2_floor = 0.01 * rad_E_floor * rad_E_floor;
+    CCTK_REAL F2_floor = 0.0;
+    CCTK_REAL fac = (F2 > F2_floor ? (E - rad_E_floor)/F2 : 0);
+    for (int a = 0; a < 4; ++a)
+    for (int b = a; b < 4; ++b) {
+        P_dd->at(a,b) = fac * F_d(a) * F_d(b);
+    }
+}
+
 void calc_Pthin(
         tensor::inv_metric<4> const & g_uu,
         CCTK_REAL const E,
         tensor::generic<CCTK_REAL, 4, 1> const & F_d,
         tensor::symmetric2<CCTK_REAL, 4, 2> * P_dd) {
+    DECLARE_CCTK_PARAMETERS;
     CCTK_REAL const F2 = tensor::dot(g_uu, F_d, F_d);
     CCTK_REAL fac = (F2 > 0 ? E/F2 : 0);
     for (int a = 0; a < 4; ++a)
@@ -407,8 +426,9 @@ void calc_closure(
     }
     if (closure_fun == thin) {
         *chi = 1.0;
-        apply_closure(g_dd, g_uu, n_d, w_lorentz, u_u, v_d, proj_ud,
-                E, F_d, *chi, P_dd);
+    		calc_Patmo(g_uu, E, F_d, P_dd);
+        // apply_closure(g_dd, g_uu, n_d, w_lorentz, u_u, v_d, proj_ud,
+        //         E, F_d, *chi, P_dd);
         return;
     }
 
@@ -641,6 +661,20 @@ void apply_floor(
             F_d->at(a) *= fac;
         }
     }
+}
+
+void atmo_reset(
+        tensor::symmetric2<CCTK_REAL, 4, 2> const & g_uu,
+        CCTK_REAL * E,
+        tensor::generic<CCTK_REAL, 4, 1> * F_d) {
+    DECLARE_CCTK_PARAMETERS;
+
+    if (*E < rad_E_floor * (1 + floor_tol)) {
+			*E = rad_E_floor;
+      for (int a = 0; a < 4; ++a) {
+          F_d->at(a) = 0.0;
+      }
+		}
 }
 
 } // namespace m1

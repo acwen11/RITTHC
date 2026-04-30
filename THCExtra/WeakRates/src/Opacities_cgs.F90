@@ -125,7 +125,7 @@ INTEGER FUNCTION Absorption_cgs(rho, temp, ye,&
 #endif
     use table3d_mod
     use units
-    use lk_interpolations
+    ! use lk_interpolations
 
     IMPLICIT NONE
 
@@ -241,7 +241,7 @@ INTEGER FUNCTION Scattering_cgs(rho, temp, ye,&
 #endif
     use table3d_mod
     use units
-    use lk_interpolations
+    ! use lk_interpolations
 
     IMPLICIT NONE
 

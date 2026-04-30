@@ -1,6 +1,6 @@
 # Interface definition for thorn THC_LeakageM0
 IMPLEMENTS: THC_LeakageM0
-INHERITS: Grid HydroBase SphericalSurface THC_Core THC_LeakageBase
+INHERITS: Grid HydroBase SphericalSurface THC_LeakageBase IllinoisGRMHD THC_UtilsLite
 
 USES INCLUDE: thc_lk_rates.h
 USES INCLUDE: thc_sph_grid.h

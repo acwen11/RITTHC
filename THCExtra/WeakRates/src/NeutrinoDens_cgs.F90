@@ -10,7 +10,7 @@ INTEGER FUNCTION NeutrinoDens_cgs(rho, temp, ye,&
     use ieee_arithmetic
 #endif
     use table3d_mod
-    use lk_interpolations
+    ! use lk_interpolations
     use units
 
     implicit none

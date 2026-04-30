@@ -34,8 +34,18 @@ extern "C" void THC_M1_Reset(CCTK_ARGUMENTS) {
     size_t siz = UTILS_GFSIZE(cctkGH)*nspecies*sizeof(CCTK_REAL);
     size_t isiz = UTILS_GFSIZE(cctkGH)*sizeof(CCTK_INT);
 
-    std::memset(rN, 0, siz);
-    std::memset(rE, 0, siz);
+		for (int kk=0; kk<cctk_lsh[2]; kk++) {
+			for (int jj=0; jj<cctk_lsh[1]; jj++) {
+				for (int ii=0; ii<cctk_lsh[0]; ii++) {
+					for (int ig = 0; ig < ngroups*nspecies; ++ig) {
+            int const i4D = CCTK_VectGFIndex3D(cctkGH, ii, jj, kk, ig);
+						rE[i4D] = rad_E_floor;
+						rN[i4D] = rad_N_floor;
+					}
+				}
+			}
+		}
+
     std::memset(rFx, 0, siz);
     std::memset(rFy, 0, siz);
     std::memset(rFz, 0, siz);

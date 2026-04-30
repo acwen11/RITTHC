@@ -12,7 +12,7 @@ SRCS = thc_id_atmosphere.c \
     thc_id_shear.c \
     thc_id_shock_tube.c \
     thc_id_simple_wave.c \
-    thc_id_static.c \
+    thc_id_static.cpp \
     thc_id_vortex.c
 
 # Subdirectories containing source files

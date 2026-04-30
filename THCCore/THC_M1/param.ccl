@@ -6,14 +6,29 @@ EXTENDS KEYWORD initial_hydro "Hydro initial data"
     "THC_M1" :: ""
 }
 
-SHARES: THC_Core
-USES BOOLEAN verbose
+SHARES: IllinoisGRMHD
+USES CCTK_STRING igm_eos_type
+USES REAL igm_T_atm
+USES REAL igm_Ye_atm
+USES BOOLEAN atmo_falloff
+USES REAL atmo_tol
+USES REAL rho_b_atm_max
+USES REAL r_power
+USES REAL r_atmo_min
 
 SHARES: HydroBase
 USES INT hydro_excision
 USES KEYWORD evolution_method
 
+SHARES: SphericalSurface
+USES CCTK_INT maxnphi
+USES CCTK_INT maxntheta
+
 RESTRICTED:
+
+BOOLEAN verbose "Print more debug statements" STEERABLE=ALWAYS
+{
+} "no"
 
 ###############################################################################
 # Physics options
@@ -39,6 +54,20 @@ KEYWORD closure "Which closure to use" STEERABLE=ALWAYS
     "Minerbo"   :: "Minerbo closure (M1)"
     "thin"      :: "Optically thin closure"
 } "Minerbo"
+
+BOOLEAN closure_thin_atmo "force thin closure in atmosphere"
+{
+} "no"
+
+REAL m1_dis "Dissipation strength" STEERABLE=always
+{
+  *:* :: "0 for no dissipation.  Unstable for epsdis<0 and epsdis>1/3"
+} 0.2
+
+REAL diss_rE_cut "Apply dissipation below this value of rE" STEERABLE=always
+{
+  *:* :: "default high number implies dissipation is applied everywhere"
+} 1e100
 
 REAL closure_epsilon "Precision with which to find the closure" STEERABLE=ALWAYS
 {
@@ -94,6 +123,12 @@ REAL rad_E_floor "Radiation energy density floor" STEERABLE=ALWAYS
 {
     0:* :: "Any non negative number"
 } 1.0e-15
+
+# Not used anymore
+REAL floor_tol "Radiation floor tolerance" STEERABLE=ALWAYS
+{
+    0:* :: "Any non negative number"
+} 0.0
 
 REAL rad_eps "Impose F_a F^a < (1 - rad_E_eps) E2" STEERABLE=ALWAYS
 {
@@ -189,6 +224,10 @@ REAL equilibrium_rho_min "Set to equilibrium only if the density is larger than 
 ###############################################################################
 # Numerical settings
 ###############################################################################
+BOOLEAN ID_from_ReadInterpolate "Load ID from file"
+{
+} "no"
+
 BOOLEAN copy_levels "Fill past timelevels after initial data"
 {
 } "yes"
@@ -212,6 +251,20 @@ INT timelevels "Number of timelevels to activate"
 {
     2:3 :: "At least two timelevels are needed"
 } 3
+
+BOOLEAN m1_excision "Mask M1 quantities inside horizon" STEERABLE=ALWAYS
+{
+} "no"
+
+CCTK_INT excision_surface "Index of the surface to use for excision" STEERABLE=recover
+{
+    0:* :: "Any valid SphericalSurface index"
+} 0
+
+CCTK_REAL excision_margin "Enlarge/shrink the excision region by the given safety margin" STEERABLE=always
+{
+    (0.0:* :: "Any positive number"
+} 1.0
 
 ###############################################################################
 # Tests

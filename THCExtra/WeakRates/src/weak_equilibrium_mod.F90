@@ -15,18 +15,18 @@
       use ieee_arithmetic
 #endif
       use table3d_mod
-      use lk_interpolations
+      ! use lk_interpolations
       use units
 
       implicit none
 
-!.....EOS interface.....................................................
-      interface
-          real(c_double) function tab3d_eps(rho, temp, ye) BIND(C, name="tab3d_eps")
-              use iso_c_binding
-              real (c_double), intent(in), value :: rho, temp, ye
-          end function
-      end interface
+!.....EOS interface -- Use WVU_EOS Instead .....................................................
+      ! interface
+      !     real(c_double) function tab3d_eps(rho, temp, ye) BIND(C, name="tab3d_eps")
+      !         use iso_c_binding
+      !         real (c_double), intent(in), value :: rho, temp, ye
+      !     end function
+      ! end interface
 
 !.....some parameters later used in the calculations....................
       CCTK_REAL, parameter :: eps_lim       = 1.e-7     ! standard tollerance in 2D NR
@@ -147,11 +147,16 @@
       CCTK_REAL :: mu_n
       CCTK_REAL :: mu_p
       CCTK_REAL :: mu_e
+      ! The following 3 vars are dummy vars for EOS
+      CCTK_REAL :: muhat, xn, xp
       CCTK_REAL :: nb
       CCTK_REAL :: mass_fact_cgs
 
       CCTK_REAL :: yl  ! total lepton mumber
       CCTK_REAL :: u   ! total internal energy (fluid + radiation)
+
+      INTEGER :: enforceTableBounds
+      INTEGER :: tabBoundsFlag
 
 !.....compute the total lepton fraction and internal energy
       yl = y_in(1) + y_in(2) - y_in(3)               ![#/baryon]
@@ -198,7 +203,8 @@
 !.....make an initial guess............................................
         x0(1) = vec_guess(na,1)*T        ! T guess  [MeV]
         x0(2) = vec_guess(na,2)*y_in(1)  ! ye guess [#/baryon]
-
+        ! Guesses may push values out of table bounds
+        tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
 !.....call the 2d Newton-Raphson........................................
         call new_raph_2dim(rho,u,yl,x0,x1,ierr)
 
@@ -233,9 +239,8 @@
       !Interpolate the chemical potentials (stored in MeV in the table)
       lrho  = log10(rho)
       ltemp = log10(T_eq)
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, y_eq(1), MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, y_eq(1), MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, y_eq(1), MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n, muhat, xn, xp)
       mus(1) = mu_e           ! electron chem pot including rest mass [MeV]
       mus(2) = mu_n - mu_p    ! n-p chem pot including rest masses [MeV]
 
@@ -509,6 +514,8 @@
       CCTK_REAL :: mu_n
       CCTK_REAL :: mu_e
       CCTK_REAL :: mu_p
+      ! These 4 are dummy vars for EOS
+      CCTK_REAL :: muhat, xn, xp, press
       CCTK_REAL :: rho_cu
       CCTK_REAL :: eps_cu
       CCTK_REAL :: e
@@ -528,15 +535,15 @@
       lrho  = log10(rho)
       ltemp = log10(x(1))
       ye = x(2)
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, x(1), mu_e, mu_p, mu_n, muhat, xn, xp)
       mus(1) = mu_e
       mus(2) = mu_n - mu_p
 
       !Call the EOS
       rho_cu = rho*cgs2cactusRho
-      eps_cu = tab3d_eps(rho_cu, x(1), ye)
+      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, x(1), press, &
+        eps_cu)
       e = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
 !.....compute the neutrino degeneracy paramater at equilibrium..........
@@ -640,6 +647,8 @@
 
       CCTK_REAL :: lrho,ltemp
       CCTK_REAL :: mu_e,mu_p,mu_n
+      ! Dummy vars for EOS
+      CCTK_REAL :: muhat, xn, xp
 
       !integer :: ierr
       !CCTK_REAL :: x1,x2
@@ -650,9 +659,8 @@
       ltemp = log10(x(1))
       t = x(1)
       ye = x(2)
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, t, mu_e, mu_p, mu_n, muhat, xn, xp)
       mus(1) = mu_e               ! electron chemical potential (w rest mass) [MeV]
       mus(2) = mu_n - mu_p        ! n minus p chemical potential (w rest mass) [MeV]
       ! compute the degeneracy parameters
@@ -759,6 +767,8 @@
       CCTK_REAL :: lrho,ltemp,tv,yev
       CCTK_REAL :: rho_cu, eps_cu
       CCTK_REAL :: mu_e,mu_p,mu_n
+      ! Dummy vars for EOS
+      CCTK_REAL :: muhat, xn, xp, press
       CCTK_REAL :: e1,e2
 
 !.....gradients are computed numerically. To do it, we consider small
@@ -784,12 +794,12 @@
       ! first, for ye slightly smaller
       ye1 = max(ye - delta_ye, eos_yemin)
       yev = ye1
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, yev, MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, yev, MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, yev, MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
 
       rho_cu = rho*cgs2cactusRho
-      eps_cu = tab3d_eps(rho_cu, t, yev)
+      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
+        eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus1(1) = mu_e
@@ -798,11 +808,11 @@
       ! second, for ye slightly larger
       ye2 = min(ye + delta_ye, eos_yemax)
       yev = ye2
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, yev, MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, yev, MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, yev, MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
 
-      eps_cu = tab3d_eps(rho_cu, t, yev)
+      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
+        eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus2(1) = mu_e
@@ -828,11 +838,11 @@
       ! first, for t slightly smaller
       tv = t1
       ltemp = log10(t-delta_t)
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
 
-      eps_cu = tab3d_eps(rho_cu, tv, ye)
+      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
+        eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus1(1) = mu_e
@@ -841,11 +851,11 @@
       ! second, for t slightly larger
       tv = t2
       ltemp = log10(t+delta_t)
-      mu_n = lkLinearInterpolation3d(lrho, ltemp, ye, MU_N)
-      mu_p = lkLinearInterpolation3d(lrho, ltemp, ye, MU_P)
-      mu_e = lkLinearInterpolation3d(lrho, ltemp, ye, MU_E)
+      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
 
-      eps_cu = tab3d_eps(rho_cu, tv, ye)
+      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
+        eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus2(1) = mu_e
@@ -1244,7 +1254,7 @@
 
       implicit none
 
-!     Note: iof I remember correctly, this subroutine needs to be in
+!     Note: if I remember correctly, this subroutine needs to be in
 !     double. I am forcing it to be real*8
 
       real*8, intent(in) :: x1,x2

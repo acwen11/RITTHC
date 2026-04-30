@@ -1,12 +1,14 @@
 # Interface definition for thorn THC_M1
 IMPLEMENTS: THC_M1
-INHERITS: ADMBase Boundary Grid HydroBase THC_Core TmunuBase
+INHERITS: ADMBase Boundary Grid HydroBase TmunuBase THC_UtilsLite IllinoisGRMHD SphericalSurface
 
 USES INCLUDE: finite_difference.h
 USES INCLUDE: Symmetry.h
 USES INCLUDE: utils.hh
 USES INCLUDE: utils_macro.h
 USES INCLUDE: thc_printer.hh
+
+USES INCLUDE: WVU_EOS_Tabulated_headers.hh # To get access to EOS mins/maxes
 
 # Boundary conditions
 CCTK_INT FUNCTION Boundary_SelectVarForBC(                                     \
@@ -105,14 +107,33 @@ USES FUNCTION EnableProlongating
 CCTK_INT FUNCTION QueryProlongating()
 USES FUNCTION QueryProlongating
 
+# EOS Calls for Hydro ID in Tests
+CCTK_INT FUNCTION EOS_Omni_GetHandle(CCTK_STRING IN name)
+
+USES FUNCTION EOS_Omni_GetHandle
+
+void FUNCTION EOS_Omni_press(CCTK_INT IN eoskey,         \
+           CCTK_INT IN havetemp,       \
+           CCTK_REAL IN rf_precision,  \
+           CCTK_INT IN npoints,        \
+           CCTK_REAL IN ARRAY rho,     \
+           CCTK_REAL INOUT ARRAY eps,  \
+           CCTK_REAL INOUT ARRAY temp, \
+           CCTK_REAL IN ARRAY ye,      \
+           CCTK_REAL OUT ARRAY press,  \
+           CCTK_INT OUT ARRAY keyerr,  \
+           CCTK_INT OUT anyerr)
+
+USES FUNCTION EOS_Omni_press
+
 PUBLIC:
 
 ## Lab frame quantities
-CCTK_REAL rN[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='ProlongationParameter="HydroBase::prolongation_type" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Neutrino density in the lab frame"
+CCTK_REAL rN[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Neutrino density in the lab frame"
 
-CCTK_REAL rE[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='ProlongationParameter="HydroBase::prolongation_type" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Radiation energy density in the lab frame"
+CCTK_REAL rE[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"' "Radiation energy density in the lab frame"
 
-CCTK_REAL rF[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='ProlongationParameter="HydroBase::prolongation_type" TensorTypeAlias="D" TensorWeight=+1.0 Interpolator="matter"'
+CCTK_REAL rF[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="D" TensorWeight=+1.0 Interpolator="matter"'
 {
     rFx, rFy, rFz
 } "Radiation energy flux in the lab frame"
@@ -137,7 +158,7 @@ CCTK_REAL rH[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeAlias
 PRIVATE:
 
 ## Diagnostics
-CCTK_REAL radial_fluxes[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='ProlongationParameter="HydroBase::prolongation_type" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"'
+CCTK_REAL radial_fluxes[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongation="ENO" TensorTypeAlias="Scalar" TensorWeight=+1.0 Interpolator="matter"'
 {
     radial_flux_0, radial_flux_1
 } "Neutrino radial number and energy fluxes"
@@ -183,3 +204,5 @@ CCTK_REAL rF_rhs[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None" TensorTypeA
 CCTK_INT thc_m1_mask TYPE=GF TAGS='Prolongation="None"' "Mask points that should not be evolved"
 
 CCTK_INT TimeIntegratorStage TAGS='Checkpoint="no"' "Current stage of the time integrator"
+
+CCTK_REAL M1_OriginalTime TAGS='Checkpoint="no"' "Time at end of fluid integration"

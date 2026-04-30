@@ -1,8 +1,4 @@
 # Parameter definitions for thorn THC_LeakageM0
-
-SHARES: THC_Core
-USES BOOLEAN verbose
-
 SHARES: HydroBase
 EXTENDS KEYWORD initial_hydro "Hydro initial data"
 {
@@ -20,6 +16,9 @@ USES CCTK_INT maxnphi
 USES CCTK_INT maxntheta
 
 RESTRICTED:
+BOOLEAN verbose "More output"
+{
+} "no"
 
 CCTK_REAL rmax "Maximum radius"
 {
@@ -46,7 +45,7 @@ BOOLEAN reset_on_recovery "Reset all the M0 variables at recovery" STEERABLE=rec
 {
 } "no"
 
-# NOTE: stearing this might mess up the switch logic, so stearing is disabled
+# NOTE: steering this might mess up the switch logic, so steering is disabled
 CCTK_REAL wait_until_time "Do not activate M0 at least until this time"
 {
    -1.0   :: "Ignore this condition"
@@ -56,7 +55,7 @@ CCTK_REAL wait_until_time "Do not activate M0 at least until this time"
 # This requires BNSTrackerGen to be active
 # NOTE: The separation as computed by BNSTrackerGen is half of what one would
 # naively call separation
-# NOTE: stearing this might mess up the switch logic, so stearing is disabled
+# NOTE: steering this might mess up the switch logic, so steering is disabled
 CCTK_REAL bns_sep_threshold "Activate M0 in a BNS run if the separation is less than"
 {
     -1.0   :: "M0 is always active"
