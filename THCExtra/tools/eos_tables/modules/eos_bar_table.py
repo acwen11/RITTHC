@@ -111,7 +111,7 @@ class EOS_Table(object):
     at the lowest tabulated density must be given.
     """
     ig    = p / (rmd**2)
-    sed   = sint.cumtrapz(ig, rmd)
+    sed   = sint.cumulative_trapezoid(ig, rmd)
     sed   = hstack([[0], sed])
     sed  += sed0
     return sed
@@ -131,7 +131,7 @@ class EOS_Table(object):
   #
   def _compute_gm1(self, ed, P, gm1_0):
     a     = 1.0/(ed + P)
-    z     = sint.cumtrapz(a, P)
+    z     = sint.cumulative_trapezoid(a, P)
     z     = hstack([[0],z])
     gm1   = gm1_0 + (1.0+gm1_0)*expm1(z)
     return gm1
