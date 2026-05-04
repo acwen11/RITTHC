@@ -25,6 +25,8 @@
 
 // #include "utils_macro.h"
 
+using namespace std;
+
 #define MAX(X,Y) ((X)>(Y)?(X):(Y))
 #define MIN(X,Y) ((X)>(Y)?(Y):(X))
 #define SQ(X) ((X)*(X))
@@ -73,14 +75,14 @@ extern "C" void THC_M1_SetMask(CCTK_ARGUMENTS) {
                 }
                 else {
                     CCTK_REAL theta = acos(MIN(1.0, MAX(-1.0, dz/rad)));
-                    assert (! isnan (theta));
+                    assert (! std::isnan(theta));
                     assert (theta >= 0);
                     assert (theta <= M_PI);
 
                     CCTK_REAL phi =
                         fmod (atan2 (dy, dx) + (2 * M_PI),
                             (2 * M_PI));
-                    assert (! isnan (phi));
+                    assert (! std::isnan(phi));
                     assert (phi >= 0);
                     assert (phi < 2 * M_PI);
 
