@@ -139,8 +139,8 @@ void __source_jacobian_low_level(
   double Jxy = - alpha * ( kapas * HxdFy + W * kapa * vx * JdFy );
   double Jxz = - alpha * ( kapas * HxdFz + W * kapa * vx * JdFz );
 
-  double Jyy = - alpha * ( kapas * HydFx + W * kapa * vy * JdFx );
-  double Jyx = - alpha * ( kapas * HydFy + W * kapa * vy * JdFy );
+  double Jyx = - alpha * ( kapas * HydFx + W * kapa * vy * JdFx );
+  double Jyy = - alpha * ( kapas * HydFy + W * kapa * vy * JdFy );
   double Jyz = - alpha * ( kapas * HydFz + W * kapa * vy * JdFz );
 
   double Jzx = - alpha * ( kapas * HzdFx + W * kapa * vz * JdFx );
