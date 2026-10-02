@@ -29,7 +29,7 @@
       ! end interface
 
 !.....some parameters later used in the calculations....................
-      CCTK_REAL, parameter :: eps_lim       = 1.e-7     ! standard tollerance in 2D NR
+      CCTK_REAL, parameter :: eps_lim       = 1.e-5     ! standard tollerance in 2D NR
       integer  , parameter :: n_cut_max     = 8         ! number of bisections of dx
       integer  , parameter :: n_max         = 100       ! Newton-Raphson max number of iterations
       integer  , parameter :: n_at          = 16        ! number of independent initial guesses
@@ -777,8 +777,6 @@
       CCTK_REAL :: mu_n
       CCTK_REAL :: mu_e
       CCTK_REAL :: mu_p
-      ! These are dummy vars for EOS
-      CCTK_REAL :: press
       CCTK_REAL :: rho_cu
       CCTK_REAL :: eps_cu
       CCTK_REAL :: e
@@ -805,8 +803,7 @@
 
       !Call the EOS
       rho_cu = rho*cgs2cactusRho
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, x(1), press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, ye, x(1), eps_cu)
       e = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
 !.....compute the neutrino degeneracy paramater at equilibrium..........
@@ -1032,8 +1029,6 @@
       CCTK_REAL :: lrho,ltemp,tv,yev
       CCTK_REAL :: rho_cu, eps_cu
       CCTK_REAL :: mu_e,mu_p,mu_n
-      ! Dummy vars for EOS
-      CCTK_REAL :: press
       CCTK_REAL :: e1,e2
 
       CCTK_REAL :: phasecheck
@@ -1069,8 +1064,7 @@
          cgs2cactusRho, yev, t, mu_e, mu_p, mu_n)
 
       rho_cu = rho*cgs2cactusRho
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, yev, t, eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus1(1) = mu_e
@@ -1086,8 +1080,7 @@
       call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
          cgs2cactusRho, yev, t, mu_e, mu_p, mu_n)
 
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, yev, t, eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus2(1) = mu_e
@@ -1126,8 +1119,7 @@
       call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
          cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n)
 
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, ye, tv, eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus1(1) = mu_e
@@ -1143,8 +1135,7 @@
       call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
          cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n)
 
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, ye, tv, eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus2(1) = mu_e

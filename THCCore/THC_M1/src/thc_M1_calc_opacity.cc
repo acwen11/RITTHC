@@ -179,7 +179,7 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                             &temperature_trap, &Y_e_trap,
                             &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
                             &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
-                    if (ierr) {
+                    if (ierr && (ilogb(cctkGH->cctk_levfac[0]) >= 8)) {
                         weak_flag[ijk] = phase < pt_tol ? HD_FAIL : QM_FAIL;
                         ostringstream ss;
                         ss << "Could not find the weak equilibrium!" << endl;
