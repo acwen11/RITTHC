@@ -305,8 +305,6 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
 
     CCTK_REAL :: rho0, temp0, ye0, eps0
     CCTK_REAL :: mb, AtomicMassImpl, nb
-    ! Dummy var for EOS call
-    CCTK_REAL :: press
 
     INTEGER :: enforceTableBounds
     INTEGER :: ierr, na, boundsErr
@@ -352,8 +350,7 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     y_in(4) = 0.25*n_nux/nb
 
     ! Compute energy (note that tab3d_eps works in Cactus units)
-    call WVU_EOS_P_and_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, press, &
-      eps0)
+    call WVU_EOS_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, eps0)
     eps0 = eps0 * cactus2cgsEps
     e_in(1) = rho0*(clight*clight + eps0)
     e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
