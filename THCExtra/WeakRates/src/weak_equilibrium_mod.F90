@@ -147,8 +147,6 @@
       CCTK_REAL :: mu_n
       CCTK_REAL :: mu_p
       CCTK_REAL :: mu_e
-      ! The following 3 vars are dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp
       CCTK_REAL :: nb
       CCTK_REAL :: mass_fact_cgs
 
@@ -239,8 +237,8 @@
       !Interpolate the chemical potentials (stored in MeV in the table)
       lrho  = log10(rho)
       ltemp = log10(T_eq)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n)
       mus(1) = mu_e           ! electron chem pot including rest mass [MeV]
       mus(2) = mu_n - mu_p    ! n-p chem pot including rest masses [MeV]
 
@@ -514,8 +512,6 @@
       CCTK_REAL :: mu_n
       CCTK_REAL :: mu_e
       CCTK_REAL :: mu_p
-      ! These 4 are dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp, press
       CCTK_REAL :: rho_cu
       CCTK_REAL :: eps_cu
       CCTK_REAL :: e
@@ -535,15 +531,14 @@
       lrho  = log10(rho)
       ltemp = log10(x(1))
       ye = x(2)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, x(1), mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, x(1), mu_e, mu_p, mu_n)
       mus(1) = mu_e
       mus(2) = mu_n - mu_p
 
       !Call the EOS
       rho_cu = rho*cgs2cactusRho
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, x(1), press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, ye, x(1), eps_cu)
       e = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
 !.....compute the neutrino degeneracy paramater at equilibrium..........
@@ -647,8 +642,6 @@
 
       CCTK_REAL :: lrho,ltemp
       CCTK_REAL :: mu_e,mu_p,mu_n
-      ! Dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp
 
       !integer :: ierr
       !CCTK_REAL :: x1,x2
@@ -659,8 +652,8 @@
       ltemp = log10(x(1))
       t = x(1)
       ye = x(2)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, t, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, t, mu_e, mu_p, mu_n)
       mus(1) = mu_e               ! electron chemical potential (w rest mass) [MeV]
       mus(2) = mu_n - mu_p        ! n minus p chemical potential (w rest mass) [MeV]
       ! compute the degeneracy parameters
@@ -767,8 +760,6 @@
       CCTK_REAL :: lrho,ltemp,tv,yev
       CCTK_REAL :: rho_cu, eps_cu
       CCTK_REAL :: mu_e,mu_p,mu_n
-      ! Dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp, press
       CCTK_REAL :: e1,e2
 
 !.....gradients are computed numerically. To do it, we consider small
@@ -794,12 +785,11 @@
       ! first, for ye slightly smaller
       ye1 = max(ye - delta_ye, eos_yemin)
       yev = ye1
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n)
 
       rho_cu = rho*cgs2cactusRho
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, yev, t, eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus1(1) = mu_e
@@ -808,11 +798,10 @@
       ! second, for ye slightly larger
       ye2 = min(ye + delta_ye, eos_yemax)
       yev = ye2
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n)
 
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, yev, t, eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus2(1) = mu_e
@@ -838,11 +827,10 @@
       ! first, for t slightly smaller
       tv = t1
       ltemp = log10(t-delta_t)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n)
 
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, ye, tv, eps_cu)
       e1 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus1(1) = mu_e
@@ -851,11 +839,10 @@
       ! second, for t slightly larger
       tv = t2
       ltemp = log10(t+delta_t)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n)
 
-      call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
-        eps_cu)
+      call WVU_EOS_eps_from_rho_Ye_T(rho_cu, ye, tv, eps_cu)
       e2 = rho*(clight**2 + eps_cu*cactus2cgsEps)
 
       mus2(1) = mu_e
