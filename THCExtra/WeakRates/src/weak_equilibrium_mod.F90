@@ -33,6 +33,7 @@
       integer  , parameter :: n_cut_max     = 8         ! number of bisections of dx
       integer  , parameter :: n_max         = 100       ! Newton-Raphson max number of iterations
       integer  , parameter :: n_at          = 16        ! number of independent initial guesses
+      integer  , parameter :: n_at_pt       = 9         ! number of guesses for the QM case
 
 !.....deltas to compute numerical derivatives in the EOS tables.........
       CCTK_REAL, parameter :: delta_ye = 0.005
@@ -74,7 +75,7 @@
 !
 !=======================================================================
 
-      subroutine weak_equil_wnu(rho,T,y_in,e_in,T_eq,y_eq,e_eq,na,ierr)
+      subroutine weak_equil_wnu(rho,T,y_in,e_in,pt_tol,T_eq,y_eq,e_eq,na,ierr)
 
       implicit none
 
@@ -82,6 +83,7 @@
       CCTK_REAL              , intent(in)  :: T
       CCTK_REAL, dimension(4), intent(in)  :: y_in
       CCTK_REAL, dimension(4), intent(in)  :: e_in
+      CCTK_REAL              , intent(in)  :: pt_tol
       CCTK_REAL              , intent(out) :: T_eq
       CCTK_REAL, dimension(4), intent(out) :: y_eq
       CCTK_REAL, dimension(4), intent(out) :: e_eq
@@ -144,11 +146,8 @@
 
       CCTK_REAL :: lrho
       CCTK_REAL :: ltemp
-      CCTK_REAL :: mu_n
-      CCTK_REAL :: mu_p
-      CCTK_REAL :: mu_e
-      ! The following 3 vars are dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp
+      CCTK_REAL :: mu_n, mu_p, mu_e
+      CCTK_REAL :: phase
       CCTK_REAL :: nb
       CCTK_REAL :: mass_fact_cgs
 
@@ -205,10 +204,19 @@
         x0(2) = vec_guess(na,2)*y_in(1)  ! ye guess [#/baryon]
         ! Guesses may push values out of table bounds
         tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
-!.....call the 2d Newton-Raphson........................................
-        call new_raph_2dim(rho,u,yl,x0,x1,ierr)
+!.....call the 2d Newton-Raphson with phasei = 0........................
+        call new_raph_2dim(rho,u,yl,0.0D0,pt_tol,x0,x1,ierr)
+
+!.....check for hadronic phase..........................................
+        if (ierr == 0) then
+          call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), x1(1), phase)
+          if (phase > 0.0 + pt_tol) then
+            ierr = 1
+          end if
+        end if
 
       end do
+
 
 !.....assign the output.................................................
       if (ierr.eq.0) then
@@ -239,8 +247,8 @@
       !Interpolate the chemical potentials (stored in MeV in the table)
       lrho  = log10(rho)
       ltemp = log10(T_eq)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n)
       mus(1) = mu_e           ! electron chem pot including rest mass [MeV]
       mus(2) = mu_n - mu_p    ! n-p chem pot including rest masses [MeV]
 
@@ -291,19 +299,210 @@
 
 !=======================================================================
 !
+!     subroutine: weak_equil_wnu_qm
+!
+!     This subroutine finds the weak equilibrium in the mixed or quark
+!     phase
+!
+!=======================================================================
+
+      subroutine weak_equil_wnu_qm(rho,T,y_in,e_in,pt_tol,T_eq,y_eq,e_eq,na,ierr)
+
+      implicit none
+
+      CCTK_REAL              , intent(in)  :: rho
+      CCTK_REAL              , intent(in)  :: T
+      CCTK_REAL, dimension(4), intent(in)  :: y_in
+      CCTK_REAL, dimension(4), intent(in)  :: e_in
+      CCTK_REAL              , intent(in)  :: pt_tol
+      CCTK_REAL              , intent(out) :: T_eq
+      CCTK_REAL, dimension(4), intent(out) :: y_eq
+      CCTK_REAL, dimension(4), intent(out) :: e_eq
+      integer                , intent(out) :: na
+      integer                , intent(out) :: ierr
+
+!.....guesses for the 2D Newton-Raphson.................................
+      CCTK_REAL, dimension(2)      :: x0,x1
+      CCTK_REAL, dimension(n_at_pt,2) :: vec_guess
+
+      CCTK_REAL, dimension(3) :: mus
+      CCTK_REAL, dimension(3) :: eta
+      CCTK_REAL, dimension(3) :: nu_dens
+
+      CCTK_REAL, dimension(2)      :: y_check
+      CCTK_REAL :: yeeq_check, ueq_check
+
+      CCTK_REAL :: lrho
+      CCTK_REAL :: ltemp
+      CCTK_REAL :: mu_n, mu_p, mu_e
+      CCTK_REAL :: phase
+      !CCTK_REAL :: mu_delta_min
+      CCTK_REAL :: nb
+      CCTK_REAL :: mass_fact_cgs
+
+      CCTK_REAL :: yl  ! total lepton mumber
+      CCTK_REAL :: u   ! total internal energy (fluid + radiation)
+
+      INTEGER :: enforceTableBounds
+      INTEGER :: tabBoundsFlag
+
+!.....perform the NR solve
+      yl = y_in(1) + y_in(2) - y_in(3)               ![#/baryon]
+      u  = e_in(1) + e_in(2) + e_in(3) + e_in(4)     ![erg/cm^3]
+
+!.....vector with the coefficients for the different guesses............
+!     at the moment, to solve the 2D NR we assign guesses for the
+!     equilibrium ye and T close to the incoming ones. This array
+!     quantifies this closeness. Different guesses are used, one after
+!     the other, until a solution is found. Hopefully, the first one
+!     works already in most of the cases. The other ones are used as
+!     backups
+!     For the QM case, we start guessing at the table minimum Ye
+
+      vec_guess(1,:)  = (/ 1.00e0, 8.00e0  /)
+      vec_guess(2,:)  = (/ 1.10e0, 8.00e0  /)
+      vec_guess(3,:)  = (/ 1.25e0, 8.00e0  /)
+      vec_guess(4,:)  = (/ 1.00e0, 4.00e0  /)
+      vec_guess(5,:)  = (/ 1.10e0, 4.00e0  /)
+      vec_guess(6,:)  = (/ 1.25e0, 4.00e0  /)
+      vec_guess(7,:)  = (/ 1.00e0, 2.00e0  /)
+      vec_guess(8,:)  = (/ 1.10e0, 2.00e0  /)
+      vec_guess(9,:)  = (/ 1.25e0, 2.00e0  /)
+
+      na = 0      ! counter for the number of attempts
+
+      ! ierr is the variable that check if equilibrium has been found:
+      ! ierr = 0   equilibrium found
+      ! ierr = 1   equilibrium not found
+      ierr = 1
+
+      ! here we try different guesses, one after the other, until
+      ! success is obtained
+      do while (ierr.ne.0.and.na.lt.n_at_pt)
+
+        na = na + 1
+
+!.....make an initial guess............................................
+        x0(1) = vec_guess(na,1)*T        ! T guess  [MeV]
+        x0(2) = vec_guess(na,2)*eos_yemin  ! ye guess [#/baryon]
+
+        ! Guesses may push values out of table bounds
+        tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
+!.....call the 2d Newton-Raphson with phasei = 2.......................
+        call new_raph_2dim(rho,u,yl,2.0D0,pt_tol,x0,x1,ierr)
+
+!.....if out of bounds, the equilibrium may be close to phase transition
+        if (ierr == 2) then
+          ierr = 0
+        endif
+
+!.....check for quark phase..........................................
+        if (ierr == 0) then
+          call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), x1(1), phase)
+          if (phase < 2.0 - pt_tol) then
+            ierr = 1
+          end if
+        end if
+
+      end do
+
+
+!.....assign the output.................................................
+      if (ierr.eq.0) then
+        ! calculations worked
+        T_eq = x1(1)
+        y_eq(1) = x1(2)
+      else
+        ! calculations did not work
+        ! write(6,*)'2D QM Newton-Raphson search did not work!'
+        ! write(6,*)'Point log10 density [g/cm^3]: ',log10(rho)
+        ! write(6,*)'Point temperature [MeV]: ',T
+        ! write(6,*)'Point yl [#/baryon]: ',yl
+        ! write(6,*)'Point log10 total energy [erg/cm^3]: ',log10(u)
+        ! write(6,*)'min(Ye) deltaX check: ',yeeq_check,' ',ueq_check
+
+!.....as backup plan, we assign the initial values to all outputs.......
+        T_eq = T        ![MeV]
+        y_eq = y_in     ![#/baryon]
+        e_eq = e_in     ![erg/cm^3]
+        return
+
+!25    format(3es14.6)
+!        close(6)
+      end if ! if calculations worked
+
+      ! here we want to compute the total energy and fractions in the
+      ! equilibrated state
+
+      !Interpolate the chemical potentials (stored in MeV in the table)
+      lrho  = log10(rho)
+      ltemp = log10(T_eq)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n)
+      mus(1) = mu_e           ! electron chem pot including rest mass [MeV]
+      mus(2) = mu_n - mu_p    ! n-p chem pot including rest masses [MeV]
+
+      ! compute the degeneracy parameters
+      call nu_deg_param_trap(t_eq,mus,eta)
+
+      ! compute the density of the trapped neutrinos
+      call dens_nu_trap(t_eq,eta,nu_dens)
+
+      !Compute the baryon number density (mass_fact is given in MeV)
+      mass_fact_cgs = mass_fact * mev_to_erg / (clight*clight)
+      nb = rho / mass_fact_cgs   ![#/cm^3]
+
+      y_eq(2) = nu_dens(1)/nb
+      y_eq(3) = nu_dens(2)/nb
+      y_eq(4) = nu_dens(3)/nb
+      y_eq(1) = yl - y_eq(2) + y_eq(3)
+
+      ! compute the energy density of the trapped neutrinos
+      call edens_nu_trap(t_eq,eta,nu_dens)
+
+      e_eq(2) = nu_dens(1)*mev_to_erg              ![erg/cm^3]
+      e_eq(3) = nu_dens(2)*mev_to_erg              ![erg/cm^3]
+      e_eq(4) = 4.*nu_dens(3)*mev_to_erg           ![erg/cm^3]
+      e_eq(1) = u - e_eq(2) - e_eq(3) - e_eq(4)    ![erg/cm^3]
+
+      ! check that the energy is positive
+      if (e_eq(1).lt.nb*mass_fact_cgs*clight*clight) then
+        ierr = 1
+        T_eq = T
+        y_eq = y_in
+        e_eq = e_in
+        return
+      end if
+
+      ! check that Y_e is within the range
+      if (y_eq(1).lt.0.or.y_eq(1).gt.1) then
+        ierr = 1
+        T_eq = T
+        y_eq = y_in
+        e_eq = e_in
+        return
+      end if
+
+      end subroutine weak_equil_wnu_qm
+
+!=======================================================================
+!=======================================================================
+!
 !     subroutine: new_raph_2dim
 !
 !     This subroutine ...
 !
 !=======================================================================
 
-      subroutine new_raph_2dim(rho,u,yl,x0,x1,ierr)
+      subroutine new_raph_2dim(rho,u,yl,phasei,pt_tol,x0,x1,ierr)
 
       implicit none
 
       CCTK_REAL              , intent(in)  :: rho
       CCTK_REAL              , intent(in)  :: u
       CCTK_REAL              , intent(in)  :: yl
+      CCTK_REAL              , intent(in)  :: phasei
+      CCTK_REAL              , intent(in)  :: pt_tol
       CCTK_REAL, dimension(2), intent(in)  :: x0
       CCTK_REAL, dimension(2), intent(out) :: x1
       integer                , intent(out) :: ierr
@@ -347,9 +546,16 @@
       ! Active component of the gradient
       CCTK_REAL, dimension(2) :: dxa
 
+      ! Additional checks for phase transition
+      CCTK_REAL :: phase
+      CCTK_REAL :: ph_yp, ph_tp, ph_tpyp
+      CCTK_REAL :: t_check, ye_check
+      LOGICAL :: pt_ye_lo, pt_ye_hi, pt_t_lo, pt_t_hi
+
       ! initialize the solution
       x1 = x0
       KKT = .false.
+      err_old = 999
 
       ! compute the initial residuals
       call func_eq_weak(rho,u,yl,x1,y)
@@ -362,10 +568,10 @@
 
       ! loop until a low enough residual is found or until  a too
       ! large number of steps has been performed
-      do while (err.gt.eps_lim.and.n_iter.le.n_max.and..not.KKT)
+      do while (err.gt.eps_lim.and.abs(err - err_old).gt.eps_lim.and.n_iter.le.n_max.and..not.KKT)
 
         ! compute the Jacobian
-        call jacobi_eq_weak(rho,u,yl,x1,J,ierr)
+        call jacobi_eq_weak(rho,u,yl,phasei,pt_tol,x1,J,ierr)
         if (ierr.ne.0) then
           return
         end if
@@ -386,18 +592,29 @@
         dx1(1) = - (invJ(1,1)*y(1)+invJ(1,2)*y(2))
         dx1(2) = - (invJ(2,1)*y(1)+invJ(2,2)*y(2))
 
-        ! check if we are the boundary of the table
-        if (x1(1) .eq. eos_tempmin) then
+        ! check if we are the boundary of the table and/or EOS phase
+        t_check = x1(1) + dx1(1)
+        ye_check = x1(2) + dx1(2)
+        tabBoundsFlag = enforceTableBounds(rho, t_check, ye_check)
+        call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye_check, x1(1), ph_yp)
+        call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), t_check, ph_tp)
+        call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye_check, t_check, ph_tpyp)
+        pt_ye_lo = (ph_yp > phasei).and.(ph_tpyp > phasei)
+        pt_ye_hi = (ph_yp < phasei).and.(ph_tpyp < phasei)
+        pt_t_lo = (ph_tp < phasei).and.(ph_tpyp < phasei)
+        pt_t_hi = (ph_tp > phasei).and.(ph_tpyp > phasei)
+
+        if ((x1(1) .eq. eos_tempmin).or.(pt_t_lo)) then
             norm(1) = -1.0
-        else if (x1(1) .eq. eos_tempmax) then
+        else if ((x1(1) .eq. eos_tempmax).or.(pt_t_hi)) then
             norm(1) = 1.0
         else
             norm(1) = 0.0
         endif
-
-        if (x1(2) .eq. eos_yemin) then
+        
+        if ((x1(2) .eq. eos_yemin).or.(pt_ye_lo)) then
             norm(2) = -1.0
-        else if (x1(2) .eq. eos_yemax) then
+        else if ((x1(2) .eq. eos_yemax).or.(pt_ye_hi)) then
             norm(2) = 1.0
         else
             norm(2) = 0.0
@@ -440,19 +657,65 @@
 
           tabBoundsFlag = enforceTableBounds(rho, x1_tmp(1), x1_tmp(2))
 
-          ! assign the new point
-          x1 = x1_tmp
+          ! reject point if solver crosses phase transition
+          call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1_tmp(2), x1_tmp(1), phase)
+          if (abs(phase - phasei) > pt_tol) then
+            err = 1000.0
+          else
+            ! compute the residuals for the new point
+            call func_eq_weak(rho,u,yl,x1,y)
 
-          ! compute the residuals for the new point
-          call func_eq_weak(rho,u,yl,x1,y)
-
-          ! compute the error
-          call error_func_eq_weak(yl,u,y,err)
-
+            ! compute the error
+            call error_func_eq_weak(yl,u,y,err)
+          endif 
           ! update the bisection cut along the gradient
           n_cut = n_cut + 1
 
         end do
+
+        if (err < err_old) then
+          ! We are probably stepping across the phase transition.
+          ! Try to step along dxa instead
+          n_cut = 0
+          do while (n_cut.le.n_cut_max.and.err.ge.err_old)
+
+            ! the variation of x1 is divided by an powers of 2 if the
+            ! error is not decreasing along the gradient direction
+            x1_tmp(1) = x1(1) + dxa(1)/2**n_cut
+            x1_tmp(2) = x1(2) + dxa(2)/2**n_cut
+
+            ! check if the next step calculation had problems
+            if (isnan(x1_tmp(1))) then
+              ierr = 1
+              return
+              !write(*,*)'x1_tmp NaN',x1_tmp(1)
+              !write(*,*)'x1',x1(1)
+              !write(*,*)'dx1',dx1(1)
+              !write(*,*)'J',J
+              !stop
+            end if
+
+            tabBoundsFlag = enforceTableBounds(rho, x1_tmp(1), x1_tmp(2))
+
+            ! reject point if solver crosses phase transition
+            call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1_tmp(2), x1_tmp(1), phase)
+            if (abs(phase - phasei) > pt_tol) then
+              err = 1000.0
+            else
+              ! compute the residuals for the new point
+              call func_eq_weak(rho,u,yl,x1,y)
+
+              ! compute the error
+              call error_func_eq_weak(yl,u,y,err)
+            endif 
+            ! update the bisection cut along the gradient
+            n_cut = n_cut + 1
+
+          end do
+        endif
+
+        ! assign the new point
+        x1 = x1_tmp
 
         ! update the iteration
         n_iter = n_iter+1
@@ -514,8 +777,8 @@
       CCTK_REAL :: mu_n
       CCTK_REAL :: mu_e
       CCTK_REAL :: mu_p
-      ! These 4 are dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp, press
+      ! These are dummy vars for EOS
+      CCTK_REAL :: press
       CCTK_REAL :: rho_cu
       CCTK_REAL :: eps_cu
       CCTK_REAL :: e
@@ -535,8 +798,8 @@
       lrho  = log10(rho)
       ltemp = log10(x(1))
       ye = x(2)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, x(1), mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, x(1), mu_e, mu_p, mu_n)
       mus(1) = mu_e
       mus(2) = mu_n - mu_p
 
@@ -610,13 +873,15 @@
 !=======================================================================
 
 
-      subroutine jacobi_eq_weak(rho,u,yl,x,J,ierr)
+      subroutine jacobi_eq_weak(rho,u,yl,phasei,pt_tol,x,J,ierr)
 
       implicit none
 
       CCTK_REAL                , intent(in)  :: rho
       CCTK_REAL                , intent(in)  :: u
       CCTK_REAL                , intent(in)  :: yl
+      CCTK_REAL                , intent(in)  :: phasei
+      CCTK_REAL                , intent(in)  :: pt_tol
       CCTK_REAL, dimension(2)  , intent(in)  :: x
       CCTK_REAL, dimension(2,2), intent(out) :: J
       integer                  , intent(out) :: ierr
@@ -647,8 +912,6 @@
 
       CCTK_REAL :: lrho,ltemp
       CCTK_REAL :: mu_e,mu_p,mu_n
-      ! Dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp
 
       !integer :: ierr
       !CCTK_REAL :: x1,x2
@@ -659,8 +922,8 @@
       ltemp = log10(x(1))
       t = x(1)
       ye = x(2)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, t, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, t, mu_e, mu_p, mu_n)
       mus(1) = mu_e               ! electron chemical potential (w rest mass) [MeV]
       mus(2) = mu_n - mu_p        ! n minus p chemical potential (w rest mass) [MeV]
       ! compute the degeneracy parameters
@@ -669,7 +932,7 @@
       eta2 = eta*eta
 
 !.....compute the gradients of eta and of the internal energy...........
-      call eta_e_gradient(rho,t,ye,eta,detadt,detadye,dedt,dedye,ierr)
+      call eta_e_gradient(rho,t,ye,eta,phasei,pt_tol,detadt,detadye,dedt,dedye,ierr)
       if (ierr.ne.0) then
         return
       end if
@@ -725,7 +988,7 @@
 !
 !=======================================================================
 
-      subroutine eta_e_gradient(rho,t,ye,eta,detadt,detadye,dedt,dedye,ierr)
+      subroutine eta_e_gradient(rho,t,ye,eta,phasei,pt_tol,detadt,detadye,dedt,dedye,ierr)
 
       implicit none
 
@@ -733,6 +996,8 @@
       CCTK_REAL, intent(in)  :: t
       CCTK_REAL, intent(in)  :: ye
       CCTK_REAL, intent(in)  :: eta
+      CCTK_REAL, intent(in)  :: phasei
+      CCTK_REAL, intent(in)  :: pt_tol
 
       CCTK_REAL, intent(out) :: detadt
       CCTK_REAL, intent(out) :: detadye
@@ -768,11 +1033,13 @@
       CCTK_REAL :: rho_cu, eps_cu
       CCTK_REAL :: mu_e,mu_p,mu_n
       ! Dummy vars for EOS
-      CCTK_REAL :: muhat, xn, xp, press
+      CCTK_REAL :: press
       CCTK_REAL :: e1,e2
 
+      CCTK_REAL :: phasecheck
+
 !.....gradients are computed numerically. To do it, we consider small
-!     variations in ye and temperature, and we compute the detivative
+!     variations in ye and temperature, and we compute the derivative
 !     using finite differencing. The real limitation is that this way
 !     relies on the EOS table interpolation procedure
 
@@ -793,9 +1060,13 @@
 
       ! first, for ye slightly smaller
       ye1 = max(ye - delta_ye, eos_yemin)
+      call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye1, t, phasecheck)
+      if (abs(phasecheck - phasei) > pt_tol) then
+        ye1 = ye
+      end if
       yev = ye1
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n)
 
       rho_cu = rho*cgs2cactusRho
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
@@ -807,9 +1078,13 @@
 
       ! second, for ye slightly larger
       ye2 = min(ye + delta_ye, eos_yemax)
+      call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye2, t, phasecheck)
+      if (abs(phasecheck - phasei) > pt_tol) then
+        ye2 = ye
+      end if
       yev = ye2
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, yev, t, mu_e, mu_p, mu_n)
 
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, yev, t, press, &
         eps_cu)
@@ -819,9 +1094,15 @@
       mus2(2) = mu_n - mu_p
 
 !.....compute numerical derivaties......................................
-      dmuedye   = (mus2(1)-mus1(1))/(ye2 - ye1)
-      dmuhatdye = (mus2(2)-mus1(2))/(ye2 - ye1)
-      dedye     = (e2-e1)/(ye2 - ye1)
+      if (ye1 /= ye2) then
+        dmuedye   = (mus2(1)-mus1(1))/(ye2 - ye1)
+        dmuhatdye = (mus2(2)-mus1(2))/(ye2 - ye1)
+        dedye     = (e2-e1)/(ye2 - ye1)
+      else
+        dmuedye   = 0.0
+        dmuhatdye = 0.0
+        dedye     = 0.0
+      end if
 
 !.....vary the temperature..............................................
       t1 = max(t - delta_t, eos_tempmin)
@@ -836,10 +1117,14 @@
       ! ye is the original one
 
       ! first, for t slightly smaller
+      call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye, t1, phasecheck)
+      if (abs(phasecheck - phasei) > pt_tol) then
+        t1 = t
+      end if
       tv = t1
       ltemp = log10(t-delta_t)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n)
 
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
         eps_cu)
@@ -849,10 +1134,14 @@
       mus1(2) = mu_n - mu_p
 
       ! second, for t slightly larger
+      call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye, t2, phasecheck)
+      if (abs(phasecheck - phasei) > pt_tol) then
+        t2 = t
+      end if
       tv = t2
       ltemp = log10(t+delta_t)
-      call WVU_EOS_mue_mup_mun_muhat_Xn_and_Xp_from_rho_Ye_T(rho * &
-         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n, muhat, xn, xp)
+      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
+         cgs2cactusRho, ye, tv, mu_e, mu_p, mu_n)
 
       call WVU_EOS_P_and_eps_from_rho_Ye_T(rho_cu, ye, tv, press, &
         eps_cu)
@@ -862,9 +1151,15 @@
       mus2(2) = mu_n - mu_p
 
 !.....compute the derivatives wrt temperature...........................
-      dmuedt   = (mus2(1) - mus1(1))/(t2 - t1)
-      dmuhatdt = (mus2(2) - mus1(2))/(t2 - t1)
-      dedt     = (e2   - e1  )/(t2 - t1)
+      if (t1 /= t2) then
+        dmuedt   = (mus2(1) - mus1(1))/(t2 - t1)
+        dmuhatdt = (mus2(2) - mus1(2))/(t2 - t1)
+        dedt     = (e2   - e1  )/(t2 - t1)
+      else
+        dmuedt   = 0.0 
+        dmuhatdt = 0.0 
+        dedt     = 0.0 
+      end if
 
 !.....combine the eta derivatives.......................................
       detadt  = (-eta + dmuedt - dmuhatdt)/t    ![1/MeV]

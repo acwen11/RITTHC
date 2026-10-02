@@ -31,6 +31,16 @@
 using namespace thc;
 using namespace std;
 
+enum WeakEqFlag : CCTK_INT {
+  INIT = 0,          // trapped eq not computed
+  HD_SUCCESS = 1,    // found weak eq
+  QM_SUCCESS = 2,    
+  HD_FALLBACK = 3,   // neutrino densities reset for HR
+  QM_FALLBACK = 4,
+  HD_FAIL = 5,       // no eq found
+  QM_FAIL = 6     
+};
+
 extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
     DECLARE_CCTK_ARGUMENTS
     DECLARE_CCTK_PARAMETERS
@@ -75,6 +85,12 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
 
             assert(nspecies == 3);
             assert(ngroups == 1);
+
+            // Init diagnostic values. They will only be filled if trapped eq. is calculated
+            T_eq[ijk] = 0.0;
+            Ye_eq[ijk] = 0.0;
+            weak_flag[ijk] = INIT;
+            phase_flag[ijk] = -1;
 
             // Get the transport opacity (absorption + scattering)
             CCTK_REAL kappa_0_loc[3], kappa_1_loc[3];
@@ -142,10 +158,15 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                     rJ[CCTK_VectGFIndex3D(cctkGH, i, j, k, 1)]/volform,
                     rJ[CCTK_VectGFIndex3D(cctkGH, i, j, k, 2)]/volform,
                 };
+
+                // Check fluid phase
+                CCTK_REAL phase;
+                WVU_EOS_phase_from_rho_Ye_T(rho[ijk], Y_e[ijk], temperature[ijk], &phase);
+                phase_flag[ijk] = phase;
                 ierr = WeakEquilibrium(
                         rho[ijk], temperature[ijk], Y_e[ijk],
                         nudens_0[0], nudens_0[1], nudens_0[2],
-                        nudens_1[0], nudens_1[1], nudens_1[2],
+                        nudens_1[0], nudens_1[1], nudens_1[2], phase,
                         &temperature_trap, &Y_e_trap,
                         &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
                         &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
@@ -154,13 +175,15 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                     // current neutrino data
                     ierr = WeakEquilibrium(
                             rho[ijk], temperature[ijk], Y_e[ijk],
-                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, phase,
                             &temperature_trap, &Y_e_trap,
                             &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
                             &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
                     if (ierr) {
+                        weak_flag[ijk] = phase < pt_tol ? HD_FAIL : QM_FAIL;
                         ostringstream ss;
                         ss << "Could not find the weak equilibrium!" << endl;
+                        ss << "Phase = " << phase << endl;
                         ss << "Reflevel = " << ilogb(cctkGH->cctk_levfac[0]) << endl;
                         ss << "Iteration = " << cctk_iteration << endl;
                         ss << "(i, j, k) = (" << i << ", " << j << ", " << k << ")\n";
@@ -175,8 +198,16 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                         ss << "nudens_1 = " << nudens_1[0] << " " << nudens_1[1]
                                             << " " << nudens_1[2] << endl;
                         Printer::print_warn(ss.str());
+                    } else {
+                      weak_flag[ijk] = phase < pt_tol ? HD_FALLBACK : QM_FALLBACK;
                     }
+                } else {
+                  weak_flag[ijk] = phase < pt_tol ? HD_SUCCESS : QM_SUCCESS;
                 }
+
+                T_eq[ijk] = temperature_trap;
+                Ye_eq[ijk] = Y_e_trap;
+
                 assert(isfinite(nudens_0_trap[0]));
                 assert(isfinite(nudens_0_trap[1]));
                 assert(isfinite(nudens_0_trap[2]));

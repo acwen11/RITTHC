@@ -288,6 +288,7 @@ END FUNCTION NeutrinoDensityImpl
 
 CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
         n_nue, n_nua, n_nux, en_nue, en_nua, en_nux, &
+        phase, &
         temp_eq, ye_eq, &
         n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq)
     ! use table3d_mod
@@ -300,6 +301,7 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
 
     CCTK_REAL, INTENT(IN)  :: rho, temp, ye
     CCTK_REAL, INTENT(IN)  :: n_nue, n_nua, n_nux, en_nue, en_nua, en_nux
+    CCTK_REAL, INTENT(IN)  :: phase;
     CCTK_REAL, INTENT(OUT) :: temp_eq, ye_eq
     CCTK_REAL, INTENT(OUT) :: n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq
 
@@ -361,8 +363,16 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     e_in(4) = en_nux*(cgs2cactusLength**3/cgs2cactusEnergy)
 
     ! Compute weak equilibrium
-    call weak_equil_wnu(rho0, temp0, y_in, e_in, temp_eq, &
-        y_eq, e_eq, na, ierr)
+    if (phase.lt.pt_tol) then
+      ! Hadronic branch
+      y_in(1) = ye0 + 0.2 * phase ! bump initial guess toward HD phase if point is slightly in mixed region
+      call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, temp_eq, &
+          y_eq, e_eq, na, ierr)
+    else
+      ! Mixed or quark branch
+      call weak_equil_wnu_qm(rho0, temp0, y_in, e_in, pt_tol, temp_eq, &
+          y_eq, e_eq, na, ierr)
+    endif
     ye_eq = y_eq(1)
 
     if (ierr.ne.0) then

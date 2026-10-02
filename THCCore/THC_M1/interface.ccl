@@ -87,6 +87,7 @@ CCTK_INT FUNCTION WeakEquilibrium( \
         CCTK_REAL IN ene_nue, \
         CCTK_REAL IN ene_nua, \
         CCTK_REAL IN ene_nux, \
+        CCTK_REAL IN phase, \
         CCTK_REAL OUT temp_eq, \
         CCTK_REAL OUT ye_eq, \
         CCTK_REAL OUT num_nue_eq, \
@@ -126,6 +127,14 @@ void FUNCTION EOS_Omni_press(CCTK_INT IN eoskey,         \
 
 USES FUNCTION EOS_Omni_press
 
+# New EOS call for HD/QM phase
+void FUNCTION WVU_EOS_phase_from_rho_Ye_T( CCTK_REAL IN rho, \
+                                               CCTK_REAL IN Ye,  \
+                                               CCTK_REAL IN T,   \
+                                               CCTK_REAL OUT phase)
+
+USES FUNCTION WVU_EOS_phase_from_rho_Ye_T
+
 PUBLIC:
 
 ## Lab frame quantities
@@ -162,6 +171,11 @@ CCTK_REAL radial_fluxes[nspecies*ngroups] TYPE=GF TIMELEVELS=3 TAGS='Prolongatio
 {
     radial_flux_0, radial_flux_1
 } "Neutrino radial number and energy fluxes"
+
+CCTK_REAL weak_eq TYPE=GF TAGS='Prolongation="None"'
+{
+    T_eq, Ye_eq, weak_flag, phase_flag
+} "Diagnostics for weak eq calculation"
 
 ## Radiation-matter interaction
 CCTK_REAL opacs[nspecies*ngroups] TYPE=GF TAGS='Prolongation="None"'

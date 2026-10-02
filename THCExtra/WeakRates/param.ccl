@@ -18,6 +18,11 @@ CCTK_REAL temp_min_mev "Set all interaction coefficients to zero below this temp
   0:* :: "Any nonnegative number"
 } 0.0
 
+CCTK_REAL pt_tol "buffer around phase transition markers of 0, 1, 2" STEERABLE=ALWAYS
+{
+  0:* :: "Any nonnegative number"
+} 0.1
+
 boolean use_rho_max_ext "Zeroth order extension of the neutrino quantities"
 {
 } "yes"

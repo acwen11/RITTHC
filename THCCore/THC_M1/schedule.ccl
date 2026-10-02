@@ -15,6 +15,7 @@ STORAGE: rH
 
 STORAGE: radial_fluxes[timelevels]
 STORAGE: neutrino_fractions
+STORAGE: weak_eq
 
 STORAGE: opacs
 STORAGE: nueave

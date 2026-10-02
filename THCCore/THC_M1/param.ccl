@@ -24,6 +24,9 @@ SHARES: SphericalSurface
 USES CCTK_INT maxnphi
 USES CCTK_INT maxntheta
 
+SHARES: WeakRates
+USES REAL pt_tol
+
 RESTRICTED:
 
 BOOLEAN verbose "Print more debug statements" STEERABLE=ALWAYS
