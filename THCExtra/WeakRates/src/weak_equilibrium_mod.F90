@@ -142,8 +142,9 @@
 
 
 !.....guesses for the 2D Newton-Raphson.................................
-      CCTK_REAL, dimension(2)      :: x0,x1
+      CCTK_REAL, dimension(2)      :: x0,x1,x1guess
       CCTK_REAL, dimension(n_at,2) :: vec_guess
+      CCTK_REAL :: errguess
 
       CCTK_REAL, dimension(3) :: mus
       CCTK_REAL, dimension(3) :: eta
@@ -186,10 +187,10 @@
         vec_guess(8,:)  = (/ 0.50e0, 1.25e0  /)
       else
         vec_guess(1,:)  = (/ 1.00e0, 8.00e0  /)
-        vec_guess(2,:)  = (/ 1.10e0, 8.00e0  /)
+        vec_guess(2,:)  = (/ 1.25e0, 8.00e0  /)
         vec_guess(3,:)  = (/ 0.75e0, 8.00e0  /)
         vec_guess(4,:)  = (/ 1.00e0, 4.00e0  /)
-        vec_guess(5,:)  = (/ 1.10e0, 4.00e0  /)
+        vec_guess(5,:)  = (/ 1.25e0, 4.00e0  /)
         vec_guess(6,:)  = (/ 0.75e0, 4.00e0  /)
         vec_guess(7,:)  = (/ 1.00e0, 2.00e0  /)
         vec_guess(8,:)  = (/ 1.25e0, 2.00e0  /)
@@ -202,10 +203,11 @@
       ! ierr = 1   best equilibrium guess has high error
       ! ierr = 2   equilibrium not found
       ierr = 2
+      err = 9999
 
       ! here we try different guesses, one after the other, until
       ! success is obtained
-      do while (ierr.gt.1.and.na.lt.n_at)
+      do while (ierr.gt.0.and.na.lt.n_at)
 
         na = na + 1
 
@@ -220,7 +222,7 @@
         ! Guesses may push values out of table bounds
         tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
 !.....call the 2d Newton-Raphson .......................
-        call new_raph_2dim(rho,u,yl,phasei,pt_tol,x0,x1,err,ierr)
+        call new_raph_2dim(rho,u,yl,phasei,pt_tol,x0,x1guess,errguess,ierr)
 
 !.....if out of bounds, the equilibrium may be close to phase transition
 !.....We will accept this solution
@@ -229,10 +231,14 @@
         endif
 
 !.....check for phase..........................................
-        if (ierr == 0) then
-          call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), x1(1), phase)
+        if (ierr <= 1) then
+          call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1guess(2), x1guess(1), phase)
           if (abs(phase - phasei) > pt_tol) then
             ierr = 2
+          else if (errguess < err) then
+            x1(1) = x1guess(1)
+            x1(2) = x1guess(2)
+            err = errguess
           end if
         end if
 
@@ -496,7 +502,7 @@
             err = 1000.0
           else
             ! compute the residuals for the new point
-            call func_eq_weak(rho,u,yl,x1,y)
+            call func_eq_weak(rho,u,yl,x1_tmp,y)
 
             ! compute the error
             call error_func_eq_weak(yl,u,y,err)
@@ -506,7 +512,7 @@
 
         end do
 
-        if (err < err_old) then
+        if (err > err_old) then
           ! We are probably stepping across the phase transition.
           ! Try to step along dxa instead
           n_cut = 0
@@ -536,7 +542,7 @@
               err = 1000.0
             else
               ! compute the residuals for the new point
-              call func_eq_weak(rho,u,yl,x1,y)
+              call func_eq_weak(rho,u,yl,x1_tmp,y)
 
               ! compute the error
               call error_func_eq_weak(yl,u,y,err)

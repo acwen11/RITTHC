@@ -373,7 +373,9 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     !! compute QM NR
     call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
         y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
-    y_in(1) = ye0 + 0.1 * phase ! bump initial guess toward HD phase
+    ! bump initial guess toward HD phase
+    y_in(1) = ye0 + 0.1 * phase 
+    temp0 = temp0 / (1.0 + phase)
     !! compute HD NR
     call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
         y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
