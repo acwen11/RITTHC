@@ -32,8 +32,7 @@
       CCTK_REAL, parameter :: eps_lim       = 1.e-5     ! standard tollerance in 2D NR
       integer  , parameter :: n_cut_max     = 8         ! number of bisections of dx
       integer  , parameter :: n_max         = 100       ! Newton-Raphson max number of iterations
-      integer  , parameter :: n_at          = 16        ! number of independent initial guesses
-      integer  , parameter :: n_at_pt       = 9         ! number of guesses for the QM case
+      integer  , parameter :: n_at          = 8        ! number of independent initial guesses
 
 !.....deltas to compute numerical derivatives in the EOS tables.........
       CCTK_REAL, parameter :: delta_ye = 0.005
@@ -75,7 +74,7 @@
 !
 !=======================================================================
 
-      subroutine weak_equil_wnu(rho,T,y_in,e_in,pt_tol,T_eq,y_eq,e_eq,na,ierr)
+      subroutine weak_equil_wnu(rho,T,y_in,e_in,pt_tol,phasei,T_eq,y_eq,e_eq,na,err,ierr)
 
       implicit none
 
@@ -84,10 +83,12 @@
       CCTK_REAL, dimension(4), intent(in)  :: y_in
       CCTK_REAL, dimension(4), intent(in)  :: e_in
       CCTK_REAL              , intent(in)  :: pt_tol
+      CCTK_REAL              , intent(in)  :: phasei
       CCTK_REAL              , intent(out) :: T_eq
       CCTK_REAL, dimension(4), intent(out) :: y_eq
       CCTK_REAL, dimension(4), intent(out) :: e_eq
       integer                , intent(out) :: na
+      CCTK_REAL              , intent(out) :: err
       integer                , intent(out) :: ierr
 
 !=======================================================================
@@ -113,6 +114,8 @@
 !              e_in(4) ... total initial heavy flavor neutrino energy    [erg/cm^3]
 !                          This is assumed to be 4 times the energy of
 !                          each single heavy flavor neutrino species
+!     pt_tol ... tolerance for all EOS phase checks
+!     phasei ... initial phase, 0 for hadronic, 2 for quark
 !
 !     output:
 !
@@ -130,8 +133,10 @@
 !              e_eq(4) ... total equilibrium heavy flavor neutrino energy   [erg/cm^3]
 !                          see explanation above and change if necessary
 !     na   ... number of attempts in 2D Newton-Raphson
+!     err ... final error in Newton-Raphson
 !     ierr ... 0 success in Newton-Raphson
-!              1 failure in Newton-Raphson
+!              1 high error in Newton-Raphson
+!              2 critical failure in Newton-Raphson
 !
 !=======================================================================
 
@@ -168,50 +173,66 @@
 !     the other, until a solution is found. Hopefully, the first one
 !     works already in most of the cases. The other ones are used as
 !     backups
+!     For the QM case, we start guessing at the table minimum Ye
 
-      vec_guess(1,:)  = (/ 1.00e0, 1.00e0  /)
-      vec_guess(2,:)  = (/ 0.90e0, 1.25e0  /)
-      vec_guess(3,:)  = (/ 0.90e0, 1.10e0  /)
-      vec_guess(4,:)  = (/ 0.90e0, 1.00e0  /)
-      vec_guess(5,:)  = (/ 0.90e0, 0.90e0  /)
-      vec_guess(6,:)  = (/ 0.90e0, 0.75e0  /)
-      vec_guess(7,:)  = (/ 0.75e0, 1.25e0  /)
-      vec_guess(8,:)  = (/ 0.75e0, 1.10e0  /)
-      vec_guess(9,:)  = (/ 0.75e0, 1.00e0  /)
-      vec_guess(10,:) = (/ 0.75e0, 0.90e0  /)
-      vec_guess(11,:) = (/ 0.75e0, 0.75e0  /)
-      vec_guess(12,:) = (/ 0.50e0, 1.25e0  /)
-      vec_guess(13,:) = (/ 0.50e0, 1.10e0  /)
-      vec_guess(14,:) = (/ 0.50e0, 1.00e0  /)
-      vec_guess(15,:) = (/ 0.50e0, 0.90e0  /)
-      vec_guess(16,:) = (/ 0.50e0, 0.75e0  /)
+      if (phasei == 0.0) then
+        vec_guess(1,:)  = (/ 1.00e0, 1.00e0  /)
+        vec_guess(2,:)  = (/ 0.90e0, 1.25e0  /)
+        vec_guess(3,:)  = (/ 0.90e0, 1.00e0  /)
+        vec_guess(4,:)  = (/ 0.90e0, 0.75e0  /)
+        vec_guess(5,:)  = (/ 0.75e0, 1.00e0  /)
+        vec_guess(6,:)  = (/ 0.75e0, 1.25e0  /)
+        vec_guess(7,:)  = (/ 0.50e0, 1.00e0  /)
+        vec_guess(8,:)  = (/ 0.50e0, 1.25e0  /)
+      else
+        vec_guess(1,:)  = (/ 1.00e0, 8.00e0  /)
+        vec_guess(2,:)  = (/ 1.10e0, 8.00e0  /)
+        vec_guess(3,:)  = (/ 0.75e0, 8.00e0  /)
+        vec_guess(4,:)  = (/ 1.00e0, 4.00e0  /)
+        vec_guess(5,:)  = (/ 1.10e0, 4.00e0  /)
+        vec_guess(6,:)  = (/ 0.75e0, 4.00e0  /)
+        vec_guess(7,:)  = (/ 1.00e0, 2.00e0  /)
+        vec_guess(8,:)  = (/ 1.25e0, 2.00e0  /)
+      end if
 
       na = 0      ! counter for the number of attempts
 
       ! ierr is the variable that check if equilibrium has been found:
       ! ierr = 0   equilibrium found
-      ! ierr = 1   equilibrium not found
-      ierr = 1
+      ! ierr = 1   best equilibrium guess has high error
+      ! ierr = 2   equilibrium not found
+      ierr = 2
 
       ! here we try different guesses, one after the other, until
       ! success is obtained
-      do while (ierr.ne.0.and.na.lt.n_at)
+      do while (ierr.gt.1.and.na.lt.n_at)
 
         na = na + 1
 
 !.....make an initial guess............................................
         x0(1) = vec_guess(na,1)*T        ! T guess  [MeV]
-        x0(2) = vec_guess(na,2)*y_in(1)  ! ye guess [#/baryon]
+        if (phasei == 0.0) then
+          x0(2) = vec_guess(na,2)*y_in(1) ! ye guess [#/baryon]
+        else
+          x0(2) = vec_guess(na,2)*eos_yemin  ! ye guess [#/baryon]
+        end if
+
         ! Guesses may push values out of table bounds
         tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
-!.....call the 2d Newton-Raphson with phasei = 0........................
-        call new_raph_2dim(rho,u,yl,0.0D0,pt_tol,x0,x1,ierr)
+!.....call the 2d Newton-Raphson .......................
+        call new_raph_2dim(rho,u,yl,phasei,pt_tol,x0,x1,err,ierr)
 
-!.....check for hadronic phase..........................................
+!.....if out of bounds, the equilibrium may be close to phase transition
+!.....We will accept this solution
+        if (ierr == 3) then
+          ierr = 0
+        endif
+
+!.....check for phase..........................................
         if (ierr == 0) then
           call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), x1(1), phase)
-          if (phase > 0.0 + pt_tol) then
-            ierr = 1
+          if (abs(phase - phasei) > pt_tol) then
+            ierr = 2
           end if
         end if
 
@@ -219,8 +240,8 @@
 
 
 !.....assign the output.................................................
-      if (ierr.eq.0) then
-        ! calculations worked
+      if (ierr <= 1) then
+        ! calculations worked, or this is the best possible answer
         T_eq = x1(1)
         y_eq(1) = x1(2)
       else
@@ -230,196 +251,6 @@
         ! write(6,*)'Point temperature [MeV]: ',T
         ! write(6,*)'Point yl [#/baryon]: ',yl
         ! write(6,*)'Point log10 total energy [erg/cm^3]: ',log10(u)
-
-!.....as backup plan, we assign the initial values to all outputs.......
-        T_eq = T        ![MeV]
-        y_eq = y_in     ![#/baryon]
-        e_eq = e_in     ![erg/cm^3]
-        return
-
-!25    format(3es14.6)
-!        close(6)
-      end if
-
-      ! here we want to compute the total energy and fractions in the
-      ! equilibrated state
-
-      !Interpolate the chemical potentials (stored in MeV in the table)
-      lrho  = log10(rho)
-      ltemp = log10(T_eq)
-      call WVU_EOS_mue_mup_mun_from_rho_Ye_T(rho * &
-         cgs2cactusRho, y_eq(1), T_eq, mu_e, mu_p, mu_n)
-      mus(1) = mu_e           ! electron chem pot including rest mass [MeV]
-      mus(2) = mu_n - mu_p    ! n-p chem pot including rest masses [MeV]
-
-      ! compute the degeneracy parameters
-      call nu_deg_param_trap(t_eq,mus,eta)
-
-      ! compute the density of the trapped neutrinos
-      call dens_nu_trap(t_eq,eta,nu_dens)
-
-      !Compute the baryon number density (mass_fact is given in MeV)
-      mass_fact_cgs = mass_fact * mev_to_erg / (clight*clight)
-      nb = rho / mass_fact_cgs   ![#/cm^3]
-
-      y_eq(2) = nu_dens(1)/nb
-      y_eq(3) = nu_dens(2)/nb
-      y_eq(4) = nu_dens(3)/nb
-      y_eq(1) = yl - y_eq(2) + y_eq(3)
-
-      ! compute the energy density of the trapped neutrinos
-      call edens_nu_trap(t_eq,eta,nu_dens)
-
-      e_eq(2) = nu_dens(1)*mev_to_erg              ![erg/cm^3]
-      e_eq(3) = nu_dens(2)*mev_to_erg              ![erg/cm^3]
-      e_eq(4) = 4.*nu_dens(3)*mev_to_erg           ![erg/cm^3]
-      e_eq(1) = u - e_eq(2) - e_eq(3) - e_eq(4)    ![erg/cm^3]
-
-      ! check that the energy is positive
-      if (e_eq(1).lt.nb*mass_fact_cgs*clight*clight) then
-        ierr = 1
-        T_eq = T
-        y_eq = y_in
-        e_eq = e_in
-        return
-      end if
-
-      ! check that Y_e is within the range
-      if (y_eq(1).lt.0.or.y_eq(1).gt.1) then
-        ierr = 1
-        T_eq = T
-        y_eq = y_in
-        e_eq = e_in
-        return
-      end if
-
-      end subroutine weak_equil_wnu
-
-!=======================================================================
-
-!=======================================================================
-!
-!     subroutine: weak_equil_wnu_qm
-!
-!     This subroutine finds the weak equilibrium in the mixed or quark
-!     phase
-!
-!=======================================================================
-
-      subroutine weak_equil_wnu_qm(rho,T,y_in,e_in,pt_tol,T_eq,y_eq,e_eq,na,ierr)
-
-      implicit none
-
-      CCTK_REAL              , intent(in)  :: rho
-      CCTK_REAL              , intent(in)  :: T
-      CCTK_REAL, dimension(4), intent(in)  :: y_in
-      CCTK_REAL, dimension(4), intent(in)  :: e_in
-      CCTK_REAL              , intent(in)  :: pt_tol
-      CCTK_REAL              , intent(out) :: T_eq
-      CCTK_REAL, dimension(4), intent(out) :: y_eq
-      CCTK_REAL, dimension(4), intent(out) :: e_eq
-      integer                , intent(out) :: na
-      integer                , intent(out) :: ierr
-
-!.....guesses for the 2D Newton-Raphson.................................
-      CCTK_REAL, dimension(2)      :: x0,x1
-      CCTK_REAL, dimension(n_at_pt,2) :: vec_guess
-
-      CCTK_REAL, dimension(3) :: mus
-      CCTK_REAL, dimension(3) :: eta
-      CCTK_REAL, dimension(3) :: nu_dens
-
-      CCTK_REAL, dimension(2)      :: y_check
-      CCTK_REAL :: yeeq_check, ueq_check
-
-      CCTK_REAL :: lrho
-      CCTK_REAL :: ltemp
-      CCTK_REAL :: mu_n, mu_p, mu_e
-      CCTK_REAL :: phase
-      !CCTK_REAL :: mu_delta_min
-      CCTK_REAL :: nb
-      CCTK_REAL :: mass_fact_cgs
-
-      CCTK_REAL :: yl  ! total lepton mumber
-      CCTK_REAL :: u   ! total internal energy (fluid + radiation)
-
-      INTEGER :: enforceTableBounds
-      INTEGER :: tabBoundsFlag
-
-!.....perform the NR solve
-      yl = y_in(1) + y_in(2) - y_in(3)               ![#/baryon]
-      u  = e_in(1) + e_in(2) + e_in(3) + e_in(4)     ![erg/cm^3]
-
-!.....vector with the coefficients for the different guesses............
-!     at the moment, to solve the 2D NR we assign guesses for the
-!     equilibrium ye and T close to the incoming ones. This array
-!     quantifies this closeness. Different guesses are used, one after
-!     the other, until a solution is found. Hopefully, the first one
-!     works already in most of the cases. The other ones are used as
-!     backups
-!     For the QM case, we start guessing at the table minimum Ye
-
-      vec_guess(1,:)  = (/ 1.00e0, 8.00e0  /)
-      vec_guess(2,:)  = (/ 1.10e0, 8.00e0  /)
-      vec_guess(3,:)  = (/ 1.25e0, 8.00e0  /)
-      vec_guess(4,:)  = (/ 1.00e0, 4.00e0  /)
-      vec_guess(5,:)  = (/ 1.10e0, 4.00e0  /)
-      vec_guess(6,:)  = (/ 1.25e0, 4.00e0  /)
-      vec_guess(7,:)  = (/ 1.00e0, 2.00e0  /)
-      vec_guess(8,:)  = (/ 1.10e0, 2.00e0  /)
-      vec_guess(9,:)  = (/ 1.25e0, 2.00e0  /)
-
-      na = 0      ! counter for the number of attempts
-
-      ! ierr is the variable that check if equilibrium has been found:
-      ! ierr = 0   equilibrium found
-      ! ierr = 1   equilibrium not found
-      ierr = 1
-
-      ! here we try different guesses, one after the other, until
-      ! success is obtained
-      do while (ierr.ne.0.and.na.lt.n_at_pt)
-
-        na = na + 1
-
-!.....make an initial guess............................................
-        x0(1) = vec_guess(na,1)*T        ! T guess  [MeV]
-        x0(2) = vec_guess(na,2)*eos_yemin  ! ye guess [#/baryon]
-
-        ! Guesses may push values out of table bounds
-        tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))
-!.....call the 2d Newton-Raphson with phasei = 2.......................
-        call new_raph_2dim(rho,u,yl,2.0D0,pt_tol,x0,x1,ierr)
-
-!.....if out of bounds, the equilibrium may be close to phase transition
-        if (ierr == 2) then
-          ierr = 0
-        endif
-
-!.....check for quark phase..........................................
-        if (ierr == 0) then
-          call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), x1(1), phase)
-          if (phase < 2.0 - pt_tol) then
-            ierr = 1
-          end if
-        end if
-
-      end do
-
-
-!.....assign the output.................................................
-      if (ierr.eq.0) then
-        ! calculations worked
-        T_eq = x1(1)
-        y_eq(1) = x1(2)
-      else
-        ! calculations did not work
-        ! write(6,*)'2D QM Newton-Raphson search did not work!'
-        ! write(6,*)'Point log10 density [g/cm^3]: ',log10(rho)
-        ! write(6,*)'Point temperature [MeV]: ',T
-        ! write(6,*)'Point yl [#/baryon]: ',yl
-        ! write(6,*)'Point log10 total energy [erg/cm^3]: ',log10(u)
-        ! write(6,*)'min(Ye) deltaX check: ',yeeq_check,' ',ueq_check
 
 !.....as backup plan, we assign the initial values to all outputs.......
         T_eq = T        ![MeV]
@@ -467,7 +298,7 @@
 
       ! check that the energy is positive
       if (e_eq(1).lt.nb*mass_fact_cgs*clight*clight) then
-        ierr = 1
+        ierr = 2
         T_eq = T
         y_eq = y_in
         e_eq = e_in
@@ -476,16 +307,17 @@
 
       ! check that Y_e is within the range
       if (y_eq(1).lt.0.or.y_eq(1).gt.1) then
-        ierr = 1
+        ierr = 2
         T_eq = T
         y_eq = y_in
         e_eq = e_in
         return
       end if
 
-      end subroutine weak_equil_wnu_qm
+      end subroutine weak_equil_wnu
 
 !=======================================================================
+
 !=======================================================================
 !
 !     subroutine: new_raph_2dim
@@ -494,7 +326,7 @@
 !
 !=======================================================================
 
-      subroutine new_raph_2dim(rho,u,yl,phasei,pt_tol,x0,x1,ierr)
+      subroutine new_raph_2dim(rho,u,yl,phasei,pt_tol,x0,x1,err,ierr)
 
       implicit none
 
@@ -505,6 +337,7 @@
       CCTK_REAL              , intent(in)  :: pt_tol
       CCTK_REAL, dimension(2), intent(in)  :: x0
       CCTK_REAL, dimension(2), intent(out) :: x1
+      CCTK_REAL              , intent(out) :: err
       integer                , intent(out) :: ierr
 
 !=======================================================================
@@ -526,7 +359,7 @@
 !=======================================================================
 
       integer :: n_iter,n_cut
-      CCTK_REAL :: err,err_old
+      CCTK_REAL :: err_old
       CCTK_REAL :: det
       CCTK_REAL, dimension(2)   :: y
       CCTK_REAL, dimension(2)   :: dx1
@@ -572,20 +405,20 @@
 
         ! compute the Jacobian
         call jacobi_eq_weak(rho,u,yl,phasei,pt_tol,x1,J,ierr)
-        if (ierr.ne.0) then
+        if (ierr.gt.1) then
           return
         end if
 
         ! compute and check the determinant of the Jacobian
         det = J(1,1)*J(2,2) - J(1,2)*J(2,1)
         if (det.eq.0.) then
-          ierr = 1
+          ierr = 2
           return
           !write(6,*)'Singular determinant in weak equilibrium!'
           !stop
         end if
 
-        ! inverte the Jacobian
+        ! invert the Jacobian
         call inv_jacobi(det,J,invJ)
 
         ! compute the next step
@@ -593,8 +426,8 @@
         dx1(2) = - (invJ(2,1)*y(1)+invJ(2,2)*y(2))
 
         ! check if we are the boundary of the table and/or EOS phase
-        t_check = x1(1) + dx1(1)
-        ye_check = x1(2) + dx1(2)
+        t_check = x1(1) + dx1(1)/2**n_cut_max
+        ye_check = x1(2) + dx1(2)/2**n_cut_max
         tabBoundsFlag = enforceTableBounds(rho, t_check, ye_check)
         call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye_check, x1(1), ph_yp)
         call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, x1(2), t_check, ph_tp)
@@ -630,7 +463,7 @@
 
         if ((dxa(1)**2 + dxa(2)**2) .lt. (eps_lim**2 * (dx1(1)**2 + dx1(2)**2))) then
             KKT = .true.
-            ierr = 2
+            ierr = 3
             return
         endif
 
@@ -646,7 +479,7 @@
 
           ! check if the next step calculation had problems
           if (isnan(x1_tmp(1))) then
-            ierr = 1
+            ierr = 2
             return
             !write(*,*)'x1_tmp NaN',x1_tmp(1)
             !write(*,*)'x1',x1(1)
@@ -686,7 +519,7 @@
 
             ! check if the next step calculation had problems
             if (isnan(x1_tmp(1))) then
-              ierr = 1
+              ierr = 2
               return
               !write(*,*)'x1_tmp NaN',x1_tmp(1)
               !write(*,*)'x1',x1(1)
@@ -930,7 +763,7 @@
 
 !.....compute the gradients of eta and of the internal energy...........
       call eta_e_gradient(rho,t,ye,eta,phasei,pt_tol,detadt,detadye,dedt,dedye,ierr)
-      if (ierr.ne.0) then
+      if (ierr.gt.1) then
         return
       end if
 
@@ -953,19 +786,19 @@
 
 !.....check on the degeneracy parameters and temperature................
       if (isnan(eta)) then
-        ierr = 1
+        ierr = 2
         return
         !write(*,*)'eta',eta
       end if
 
       if (isnan(detadt)) then
-        ierr = 1
+        ierr = 2
         return
         !write(*,*)'detadt',detadt
       end if
 
       if (isnan(t)) then
-        ierr = 1
+        ierr = 2
         return
         !write(*,*)'t',t
       end if
@@ -1055,6 +888,8 @@
 
       ! first, for ye slightly smaller
       ye1 = max(ye - delta_ye, eos_yemin)
+      ! reject points near phase transition, as gradients can be high and 
+      ! unphysical
       call WVU_EOS_phase_from_rho_Ye_T(rho*cgs2cactusRho, ye1, t, phasecheck)
       if (abs(phasecheck - phasei) > pt_tol) then
         ye1 = ye
@@ -1158,7 +993,7 @@
 
 !.....check if the derivative has a problem.............................
       if (isnan(detadt)) then
-        ierr = 1
+        ierr = 2
         return
         !write(*,*)'problem with eta: ',eta
         !write(*,*)'mue1: ',mus1(1)

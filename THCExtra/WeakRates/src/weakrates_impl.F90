@@ -307,8 +307,15 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
 
     CCTK_REAL :: rho0, temp0, ye0, eps0
     CCTK_REAL :: mb, AtomicMassImpl, nb
-    ! Dummy var for EOS call
-    CCTK_REAL :: press
+
+    CCTK_REAL :: t_eq_hd, err_hd
+    CCTK_REAL, DIMENSION(4) :: y_eq_hd
+    CCTK_REAL, DIMENSION(4) :: e_eq_hd
+    CCTK_REAL :: t_eq_qm, err_qm
+    CCTK_REAL, DIMENSION(4) :: y_eq_qm
+    CCTK_REAL, DIMENSION(4) :: e_eq_qm
+    INTEGER :: na_hd, ierr_hd
+    INTEGER :: na_qm, ierr_qm
 
     INTEGER :: enforceTableBounds
     INTEGER :: ierr, na, boundsErr
@@ -317,6 +324,8 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     CCTK_REAL, DIMENSION(4) :: e_in
     CCTK_REAL, DIMENSION(4) :: y_eq
     CCTK_REAL, DIMENSION(4) :: e_eq
+
+    INTEGER :: ii
 
     ! Conversion to cgs units
     rho0  = rho*cactus2cgsRho
@@ -354,25 +363,67 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     y_in(4) = 0.25*n_nux/nb
 
     ! Compute energy (note that tab3d_eps works in Cactus units)
-    call WVU_EOS_P_and_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, press, &
-      eps0)
+    call WVU_EOS_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, eps0)
     eps0 = eps0 * cactus2cgsEps
     e_in(1) = rho0*(clight*clight + eps0)
     e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
     e_in(3) = en_nua*(cgs2cactusLength**3/cgs2cactusEnergy)
     e_in(4) = en_nux*(cgs2cactusLength**3/cgs2cactusEnergy)
 
+    !! compute QM NR
+    call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
+        y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
+    y_in(1) = ye0 + 0.1 * phase ! bump initial guess toward HD phase
+    !! compute HD NR
+    call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
+        y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
+
     ! Compute weak equilibrium
-    if (phase.lt.pt_tol) then
-      ! Hadronic branch
-      y_in(1) = ye0 + 0.2 * phase ! bump initial guess toward HD phase if point is slightly in mixed region
-      call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, temp_eq, &
-          y_eq, e_eq, na, ierr)
+    ! if (phase.lt.pt_tol) then
+    !   ! Hadronic branch
+    !   !! compute QM NR
+    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
+    !       y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
+    !   y_in(1) = ye0 + 0.2 * phase ! bump initial guess toward HD phase if point is slightly in mixed region
+    !   !! compute HD NR
+    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
+    !       y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
+    ! else
+    !   ! Mixed or quark branch
+    !   !! compute QM NR
+    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
+    !       y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
+    !   y_in(1) = ye0 + 0.2 * phase ! bump initial guess toward HD phase
+    !   !! compute HD NR
+    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
+    !       y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
+    ! endif
+
+    if ((ierr_qm > 1).and.(ierr_hd > 1)) then
+      ! only request fallback if there is a critical error
+      ierr = 1
+      ! Fall back to input values
+      temp_eq = temp0
+      do ii = 1, 4
+        y_eq(ii) = y_in(ii)
+        e_eq(ii) = e_in(ii)
+      end do
     else
-      ! Mixed or quark branch
-      call weak_equil_wnu_qm(rho0, temp0, y_in, e_in, pt_tol, temp_eq, &
-          y_eq, e_eq, na, ierr)
-    endif
+      ierr = 0
+      if (err_hd < err_qm) then
+        temp_eq = t_eq_hd
+        do ii = 1, 4
+          y_eq(ii) = y_eq_hd(ii)
+          e_eq(ii) = e_eq_hd(ii)
+        end do
+      else
+        temp_eq = t_eq_qm
+        do ii = 1, 4
+          y_eq(ii) = y_eq_qm(ii)
+          e_eq(ii) = e_eq_qm(ii)
+        end do
+      end if
+    end if
     ye_eq = y_eq(1)
 
     if (ierr.ne.0) then
