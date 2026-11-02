@@ -166,7 +166,7 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                 ierr = WeakEquilibrium(
                         rho[ijk], temperature[ijk], Y_e[ijk],
                         nudens_0[0], nudens_0[1], nudens_0[2],
-                        nudens_1[0], nudens_1[1], nudens_1[2], phase,
+                        nudens_1[0], nudens_1[1], nudens_1[2],
                         &temperature_trap, &Y_e_trap,
                         &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
                         &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);

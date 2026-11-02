@@ -288,7 +288,6 @@ END FUNCTION NeutrinoDensityImpl
 
 CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
         n_nue, n_nua, n_nux, en_nue, en_nua, en_nux, &
-        phase, &
         temp_eq, ye_eq, &
         n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq)
     ! use table3d_mod
@@ -301,11 +300,11 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
 
     CCTK_REAL, INTENT(IN)  :: rho, temp, ye
     CCTK_REAL, INTENT(IN)  :: n_nue, n_nua, n_nux, en_nue, en_nua, en_nux
-    CCTK_REAL, INTENT(IN)  :: phase;
     CCTK_REAL, INTENT(OUT) :: temp_eq, ye_eq
     CCTK_REAL, INTENT(OUT) :: n_nue_eq, n_nua_eq, n_nux_eq, en_nue_eq, en_nua_eq, en_nux_eq
 
-    CCTK_REAL :: rho0, temp0, ye0, eps0
+    CCTK_REAL :: rho0, temp0, lntemp0, ye0, yeguess, eps0
+    CCTK_REAL :: phase, phasecheck;
     CCTK_REAL :: mb, AtomicMassImpl, nb
 
     CCTK_REAL :: t_eq_hd, err_hd
@@ -318,6 +317,7 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     INTEGER :: na_qm, ierr_qm
 
     INTEGER :: enforceTableBounds
+    INTEGER :: nsteps, nsteps_max 
     INTEGER :: ierr, na, boundsErr
 
     CCTK_REAL, DIMENSION(4) :: y_in
@@ -363,49 +363,72 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     y_in(4) = 0.25*n_nux/nb
 
     ! Compute energy (note that tab3d_eps works in Cactus units)
-    call WVU_EOS_eps_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, eps0)
+    call WVU_EOS_eps_from_rho_Ye_T(rho0/cactus2cgsRho, y_in(1), temp0, eps0)
     eps0 = eps0 * cactus2cgsEps
     e_in(1) = rho0*(clight*clight + eps0)
     e_in(2) = en_nue*(cgs2cactusLength**3/cgs2cactusEnergy)
     e_in(3) = en_nua*(cgs2cactusLength**3/cgs2cactusEnergy)
     e_in(4) = en_nux*(cgs2cactusLength**3/cgs2cactusEnergy)
 
-    !! compute QM NR
-    call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
-        y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
-    ! bump initial guess toward HD phase
-    y_in(1) = ye0 + 0.1 * phase 
-    temp0 = temp0 / (1.0 + phase)
-    !! compute HD NR
-    call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
-        y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
+    ! Ensure initial guesses are in correct EOS phase
+    nsteps_max = 4
+    call WVU_EOS_phase_from_rho_Ye_T(rho0/cactus2cgsRho, ye, temp, phase)
+    phasecheck = phase
+    nsteps = 0
+    lntemp0 = log(temp0)
+    yeguess = ye0
 
-    ! Compute weak equilibrium
-    ! if (phase.lt.pt_tol) then
-    !   ! Hadronic branch
-    !   !! compute QM NR
-    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
-    !       y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
-    !   y_in(1) = ye0 + 0.2 * phase ! bump initial guess toward HD phase if point is slightly in mixed region
-    !   !! compute HD NR
-    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
-    !       y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
-    ! else
-    !   ! Mixed or quark branch
-    !   !! compute QM NR
-    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
-    !       y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
-    !   y_in(1) = ye0 + 0.2 * phase ! bump initial guess toward HD phase
-    !   !! compute HD NR
-    !   call weak_equil_wnu(rho0, temp0, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
-    !       y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
-    ! endif
+    !! compute HD NR
+    if (phase /= 0.0) then
+      do while (phasecheck /= 0.0).and.(nsteps < nsteps_max)
+        yeguess += 0.05
+        lntemp0 -= 0.2
+        temp0 = exp(lntemp0)
+        boundsErr = enforceTableBounds(rho0, temp0, yeguess)
+        call WVU_EOS_phase_from_rho_Ye_T(rho0/cactus2cgsRho, yeguess, temp0, phasecheck)
+        nsteps += 1
+      end do
+    end if
+
+    if (phasecheck /= 0.0) then
+      ierr_hd = 2
+      err_hd = 9999
+    else
+      call weak_equil_wnu(rho0, temp0, yeguess, y_in, e_in, pt_tol, 0.0d0, t_eq_hd, &
+          y_eq_hd, e_eq_hd, na_hd, err_hd, ierr_hd)
+    end if
+
+    !! compute QM NR
+    !!! reset
+    phasecheck = phase
+    nsteps = 0
+    temp0 = temp
+    lntemp0 = log(temp0)
+    yeguess = eos_yemin
+
+    if (phase /= 2.0) then
+      do while (phasecheck /= 2.0).and.(nsteps < nsteps_max)
+        lntemp0 += 0.2
+        temp0 = exp(lntemp0)
+        boundsErr = enforceTableBounds(rho0, temp0, yeguess)
+        call WVU_EOS_phase_from_rho_Ye_T(rho0/cactus2cgsRho, yeguess, temp0, phasecheck)
+        nsteps += 1
+      end do
+    end if
+
+    if (phasecheck /= 2.0) then
+      ierr_qm = 2
+      err_qm = 9999
+    else
+      call weak_equil_wnu(rho0, temp0, yeguess, y_in, e_in, pt_tol, 2.0d0, t_eq_qm, &
+          y_eq_qm, e_eq_qm, na_qm, err_qm, ierr_qm)
+    end if
 
     if ((ierr_qm > 1).and.(ierr_hd > 1)) then
       ! only request fallback if there is a critical error
       ierr = 1
       ! Fall back to input values
-      temp_eq = temp0
+      temp_eq = temp
       do ii = 1, 4
         y_eq(ii) = y_in(ii)
         e_eq(ii) = e_in(ii)

@@ -29,10 +29,10 @@
       ! end interface
 
 !.....some parameters later used in the calculations....................
-      CCTK_REAL, parameter :: eps_lim       = 1.e-5     ! standard tollerance in 2D NR
+      CCTK_REAL, parameter :: eps_lim       = 1.e-7     ! standard tollerance in 2D NR
       integer  , parameter :: n_cut_max     = 8         ! number of bisections of dx
       integer  , parameter :: n_max         = 100       ! Newton-Raphson max number of iterations
-      integer  , parameter :: n_at          = 8        ! number of independent initial guesses
+      integer  , parameter :: n_at          = 6        ! number of independent initial guesses
 
 !.....deltas to compute numerical derivatives in the EOS tables.........
       CCTK_REAL, parameter :: delta_ye = 0.005
@@ -74,12 +74,13 @@
 !
 !=======================================================================
 
-      subroutine weak_equil_wnu(rho,T,y_in,e_in,pt_tol,phasei,T_eq,y_eq,e_eq,na,err,ierr)
+      subroutine weak_equil_wnu(rho,T,yeguess,y_in,e_in,pt_tol,phasei,T_eq,y_eq,e_eq,na,err,ierr)
 
       implicit none
 
       CCTK_REAL              , intent(in)  :: rho
       CCTK_REAL              , intent(in)  :: T
+      CCTK_REAL              , intent(in)  :: yeguess
       CCTK_REAL, dimension(4), intent(in)  :: y_in
       CCTK_REAL, dimension(4), intent(in)  :: e_in
       CCTK_REAL              , intent(in)  :: pt_tol
@@ -181,10 +182,8 @@
         vec_guess(2,:)  = (/ 0.90e0, 1.25e0  /)
         vec_guess(3,:)  = (/ 0.90e0, 1.00e0  /)
         vec_guess(4,:)  = (/ 0.90e0, 0.75e0  /)
-        vec_guess(5,:)  = (/ 0.75e0, 1.00e0  /)
-        vec_guess(6,:)  = (/ 0.75e0, 1.25e0  /)
-        vec_guess(7,:)  = (/ 0.50e0, 1.00e0  /)
-        vec_guess(8,:)  = (/ 0.50e0, 1.25e0  /)
+        vec_guess(5,:)  = (/ 0.75e0, 1.25e0  /)
+        vec_guess(6,:)  = (/ 0.50e0, 1.25e0  /)
       else
         vec_guess(1,:)  = (/ 1.00e0, 8.00e0  /)
         vec_guess(2,:)  = (/ 1.25e0, 8.00e0  /)
@@ -192,8 +191,6 @@
         vec_guess(4,:)  = (/ 1.00e0, 4.00e0  /)
         vec_guess(5,:)  = (/ 1.25e0, 4.00e0  /)
         vec_guess(6,:)  = (/ 0.75e0, 4.00e0  /)
-        vec_guess(7,:)  = (/ 1.00e0, 2.00e0  /)
-        vec_guess(8,:)  = (/ 1.25e0, 2.00e0  /)
       end if
 
       na = 0      ! counter for the number of attempts
@@ -213,11 +210,7 @@
 
 !.....make an initial guess............................................
         x0(1) = vec_guess(na,1)*T        ! T guess  [MeV]
-        if (phasei == 0.0) then
-          x0(2) = vec_guess(na,2)*y_in(1) ! ye guess [#/baryon]
-        else
-          x0(2) = vec_guess(na,2)*eos_yemin  ! ye guess [#/baryon]
-        end if
+        x0(2) = vec_guess(na,2)*yeguess  ! ye guess [#/baryon]
 
         ! Guesses may push values out of table bounds
         tabBoundsFlag = enforceTableBounds(rho, x0(1), x0(2))

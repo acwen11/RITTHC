@@ -63,7 +63,6 @@ CCTK_INT FUNCTION WeakEquilibrium( \
         CCTK_REAL IN ene_nue, \
         CCTK_REAL IN ene_nua, \
         CCTK_REAL IN ene_nux, \
-        CCTK_REAL IN phase, \
         CCTK_REAL OUT temp_eq, \
         CCTK_REAL OUT ye_eq, \
         CCTK_REAL OUT num_nue_eq, \
