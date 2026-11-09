@@ -380,13 +380,13 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
 
     !! compute HD NR
     if (phase /= 0.0) then
-      do while (phasecheck /= 0.0).and.(nsteps < nsteps_max)
-        yeguess += 0.05
-        lntemp0 -= 0.2
+      do while ((phasecheck /= 0.0).and.(nsteps < nsteps_max))
+        yeguess = yeguess + 0.05
+        lntemp0 = lntemp0 - 0.2
         temp0 = exp(lntemp0)
         boundsErr = enforceTableBounds(rho0, temp0, yeguess)
         call WVU_EOS_phase_from_rho_Ye_T(rho0/cactus2cgsRho, yeguess, temp0, phasecheck)
-        nsteps += 1
+        nsteps = nsteps + 1
       end do
     end if
 
@@ -407,12 +407,12 @@ CCTK_INT FUNCTION WeakEquilibriumImpl(rho, temp, ye,&
     yeguess = eos_yemin
 
     if (phase /= 2.0) then
-      do while (phasecheck /= 2.0).and.(nsteps < nsteps_max)
-        lntemp0 += 0.2
+      do while ((phasecheck /= 2.0).and.(nsteps < nsteps_max))
+        lntemp0 = lntemp0 + 0.2
         temp0 = exp(lntemp0)
         boundsErr = enforceTableBounds(rho0, temp0, yeguess)
         call WVU_EOS_phase_from_rho_Ye_T(rho0/cactus2cgsRho, yeguess, temp0, phasecheck)
-        nsteps += 1
+        nsteps = nsteps + 1
       end do
     end if
 

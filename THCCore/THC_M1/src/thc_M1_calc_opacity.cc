@@ -175,7 +175,7 @@ extern "C" void THC_M1_CalcOpacity(CCTK_ARGUMENTS) {
                     // current neutrino data
                     ierr = WeakEquilibrium(
                             rho[ijk], temperature[ijk], Y_e[ijk],
-                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, phase,
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             &temperature_trap, &Y_e_trap,
                             &nudens_0_trap[0], &nudens_0_trap[1], &nudens_0_trap[2],
                             &nudens_1_trap[0], &nudens_1_trap[1], &nudens_1_trap[2]);
